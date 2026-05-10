@@ -32,3 +32,6 @@ pnpm-debug.log*
 docs/
 mobile-qa/
 screenshots/
+
+# Local Netlify folder
+.netlify

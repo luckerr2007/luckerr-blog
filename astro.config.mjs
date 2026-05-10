@@ -1,6 +1,7 @@
 // @ts-check
 
 import mdx from "@astrojs/mdx";
+import netlify from "@astrojs/netlify";
 import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "astro/config";
@@ -19,10 +20,10 @@ import { remarkModifiedTime } from "./remark-modified-time.mjs";
 
 // https://astro.build/config
 export default defineConfig({
-    site: "https://luckerr2007.github.io",
-    base: "/luckerr-blog",
+    site: "https://luckerr-blog.netlify.app",
     trailingSlash: "never",
-    output: "static",
+    output: "server",
+    adapter: netlify(),
     integrations: [
         mdx(),
         sitemap({
