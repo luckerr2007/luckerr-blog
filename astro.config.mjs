@@ -1,6 +1,5 @@
 // @ts-check
 
-import cloudflare from "@astrojs/cloudflare";
 import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
@@ -20,9 +19,10 @@ import { remarkModifiedTime } from "./remark-modified-time.mjs";
 
 // https://astro.build/config
 export default defineConfig({
-    site: "https://niracler.com",
+    site: "https://luckerr2007.github.io",
+    base: "/luckerr-blog",
     trailingSlash: "never",
-    output: "static", // 静态模式：全部预渲染（动态页面需要单独配置 prerender: false）
+    output: "static",
     integrations: [
         mdx(),
         sitemap({
@@ -36,19 +36,14 @@ export default defineConfig({
         }),
         pagefind(),
     ],
-    adapter: cloudflare({
-        imageService: "compile",
-    }),
 
     markdown: {
         remarkPlugins: [remarkMath, remarkAlert, remarkModifiedTime],
         shikiConfig: {
-            // 双主题配置：通过 CSS 变量控制，无需 !important
             themes: {
                 light: "github-light",
                 dark: "catppuccin-mocha",
             },
-            // 禁用默认颜色，让 CSS 完全控制主题切换
             defaultColor: false,
         },
         syntaxHighlight: {
@@ -70,7 +65,7 @@ export default defineConfig({
             [
                 rehypeMermaid,
                 {
-                    strategy: "pre-mermaid", // 客户端渲染，不需要 Playwright
+                    strategy: "pre-mermaid",
                 },
             ],
             rehypePicture,
