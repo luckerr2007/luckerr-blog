@@ -1,0 +1,86 @@
+---
+/**
+ * EChart - ECharts 交互式图表组件
+ * 支持饼图、柱状图、折线图、散点图、雷达图、仪表盘、漏斗图等
+ */
+
+interface Props {
+    option: Record<string, unknown>;
+    height?: string;
+    class?: string;
+}
+
+const { option, height = "350px", class: className = "" } = Astro.props;
+const chartId = `echart-${Math.random().toString(36).substring(2, 9)}`;
+const serializedOption = JSON.stringify(option);
+---
+
+<div
+    class={`echart-container w-full rounded-md bg-surface overflow-hidden ${className}`}
+    id={chartId}
+    style={`height: ${height}`}
+    data-option={serializedOption}
+></div>
+
+<script is:inline>
+    (function() {
+        function getTheme() {
+            var html = document.documentElement;
+            var isDark = html.classList.contains("dark")
+                || window.matchMedia("(prefers-color-scheme: dark)").matches;
+            return isDark ? "dark" : "light";
+        }
+
+        function initChart(el) {
+            if (el.dataset.initialized === 'true') return;
+            el.dataset.initialized = 'true';
+
+            var optionStr = el.dataset.option;
+            if (!optionStr) return;
+
+            try {
+                var chartOption = JSON.parse(optionStr);
+                var chart = echarts.init(el, getTheme());
+                chart.setOption(chartOption);
+
+                var resizeObserver = new ResizeObserver(function() { chart.resize(); });
+                resizeObserver.observe(el);
+
+                var mutationObserver = new MutationObserver(function() {
+                    chart.dispose();
+                    var newChart = echarts.init(el, getTheme());
+                    newChart.setOption(chartOption);
+                    resizeObserver.observe(el);
+                });
+                mutationObserver.observe(document.documentElement, {
+                    attributes: true,
+                    attributeFilter: ["class"]
+                });
+            } catch (err) {
+                console.error("EChart init error:", err);
+            }
+        }
+
+        function scanCharts() {
+            document.querySelectorAll(".echart-container:not([data-initialized])").forEach(function(el) {
+                initChart(el);
+            });
+        }
+
+        // Initial scan after a short delay to ensure DOM is ready
+        setTimeout(scanCharts, 100);
+
+        // Watch for dynamically added charts
+        var observer = new MutationObserver(function(mutations) {
+            var found = false;
+            for (var i = 0; i < mutations.length; i++) {
+                if (mutations[i].addedNodes.length > 0) {
+                    found = true;
+                    break;
+                }
+            }
+            if (found) scanCharts();
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+    })();
+</script>

@@ -1,0 +1,94 @@
+---
+/**
+ * MermaidChart - Mermaid 图表组件
+ * 支持甘特图、饼图、流程图、时序图、类图等
+ */
+
+interface Props {
+    chart: string;
+    caption?: string;
+}
+
+const { chart, caption } = Astro.props;
+const chartId = `mermaid-${Math.random().toString(36).substring(2, 9)}`;
+---
+
+<div class="mermaid-chart w-full my-8" id={chartId}>
+    <div class="mermaid-wrapper flex justify-center overflow-x-auto rounded-lg border border-border-subtle bg-surface p-6">
+        <pre class="mermaid">{chart.trim()}</pre>
+    </div>
+    {caption && <figcaption class="mermaid-caption mt-3 text-center text-sm text-secondary">{caption}</figcaption>}
+</div>
+
+<style>
+    .mermaid {
+        display: flex;
+        justify-content: center;
+    }
+
+    .mermaid svg {
+        max-width: 100%;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+    }
+
+    /* Ensure SVG takes full width for proper centering */
+    .mermaid svg[style*="width"] {
+        max-width: 100%;
+    }
+
+    /* Flowchart and class diagram specific centering */
+    .mermaid svg foreignObject {
+        display: flex;
+        justify-content: center;
+    }
+
+    .mermaid svg .root {
+        display: block;
+        margin: 0 auto;
+    }
+
+    /* Override mermaid's default inline styles */
+    .mermaid > svg {
+        display: block !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    .mermaid svg .node rect,
+    .mermaid svg .node circle,
+    .mermaid svg .node ellipse,
+    .mermaid svg .node polygon {
+        fill: var(--mermaid-node-bg, #f8f9fa);
+        stroke: var(--mermaid-node-border, #dee2e6);
+        stroke-width: 1.5px;
+    }
+
+    .mermaid svg .edgePath path {
+        stroke: var(--mermaid-edge-color, #6c757d);
+        stroke-width: 1.5px;
+    }
+
+    .mermaid svg .label {
+        color: var(--text-primary, #212529);
+        font-family: var(--font-mono, monospace);
+    }
+
+    /* Dark theme */
+    :global(.dark) .mermaid svg .node rect,
+    :global(.dark) .mermaid svg .node circle,
+    :global(.dark) .mermaid svg .node ellipse,
+    :global(.dark) .mermaid svg .node polygon {
+        fill: var(--mermaid-node-bg, #2b2d42);
+        stroke: var(--mermaid-node-border, #8d99ae);
+    }
+
+    :global(.dark) .mermaid svg .edgePath path {
+        stroke: var(--mermaid-edge-color, #adb5bd);
+    }
+
+    :global(.dark) .mermaid svg .label {
+        color: var(--text-primary, #e9ecef);
+    }
+</style>

@@ -1,0 +1,44 @@
+---
+import BaseHead from "../components/BaseHead.astro";
+import CommentSection from "../components/CommentSection.astro";
+import Footer from "../components/Footer.astro";
+import Header from "../components/Header.astro";
+import Lightbox from "../components/Lightbox.astro";
+import Prose from "../components/Prose.astro";
+import { getLocale, t } from "../i18n/ui";
+
+const { frontmatter = {} } = Astro.props as { frontmatter?: Record<string, unknown> };
+const {
+    comments: commentsEnabled,
+    description: pageDescription,
+    title,
+} = frontmatter as {
+    comments?: boolean;
+    description?: string;
+    title?: string;
+};
+const locale = getLocale(Astro.currentLocale);
+const siteTitle = t(locale, "site.title");
+const siteDescription = t(locale, "site.description");
+const pageTitle = title ? `${title} · ${siteTitle}` : siteTitle;
+const description = pageDescription || siteDescription;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={pageTitle} description={description} />
+	</head>
+	<body>
+		<Header />
+		<main id="main-content" class="page-shell max-w-5xl section-stack">
+			<Prose class="max-w-none text-secondary">
+				<slot />
+			</Prose>
+
+			{commentsEnabled && <CommentSection />}
+			<Lightbox id="page-lightbox" selector=".prose img:not([data-lightbox-skip])" />
+		</main>
+		<Footer />
+	</body>
+</html>

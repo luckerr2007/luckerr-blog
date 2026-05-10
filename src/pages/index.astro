@@ -1,0 +1,312 @@
+---
+import BaseHead from "../components/BaseHead.astro";
+import Footer from "../components/Footer.astro";
+import Header from "../components/Header.astro";
+import { SITE_DESCRIPTION, SITE_TITLE } from "../consts";
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": SITE_TITLE,
+      "description": SITE_DESCRIPTION,
+      "url": Astro.site?.toString()
+    })} />
+    <style>
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes breathe {
+        0%,
+        100% {
+          opacity: 0.95;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+
+      .quote-container {
+        animation: fadeIn 1s ease-out;
+        position: relative;
+        width: 100%;
+      }
+
+      .quote-text {
+        color: var(--color-text-secondary);
+        line-height: 1.8;
+        font-size: clamp(1.25rem, 4.5vw, 1.5rem);
+      }
+
+      /* 幽灵容器保持高度稳定 */
+      .quote-ghost {
+        visibility: hidden;
+        pointer-events: none;
+        user-select: none;
+      }
+
+      /* 真实打字机覆盖在幽灵容器上 */
+      .quote-actual {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        margin: 0 auto;
+        opacity: 0;
+        transition: opacity var(--transition-slow);
+      }
+
+      .quote-actual.is-ready {
+        opacity: 1;
+      }
+
+      .quote-emphasis {
+        display: inline-block;
+        font-size: clamp(1.75rem, 6.5vw, 2.25rem); /* 提升最小字号 */
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        color: var(--color-link);
+        margin: clamp(0.75rem, 2.5vw, 1rem) 0;
+        animation: breathe 4s ease-in-out infinite;
+      }
+
+      .quote-source {
+        transition: all var(--transition-slower); /* intentional slow reveal */
+        opacity: 0; /* 初始隐藏，由脚本控制显现 */
+      }
+
+      .quote-source.is-visible {
+        opacity: 1;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .quote-container,
+        .quote-source {
+          animation: none;
+        }
+        .quote-emphasis {
+          animation: none;
+        }
+      }
+
+      .quote-source:hover {
+        color: var(--color-text-secondary);
+      }
+
+      .quote-source a {
+        position: relative;
+        text-decoration: none;
+        transition: color var(--transition-slow);
+      }
+
+      .quote-source a::after {
+        content: "";
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: var(--color-accent);
+        transition: width var(--transition-slow);
+      }
+
+      .quote-source a:hover::after {
+        width: 100%;
+      }
+
+      /* Typewriter cursor style */
+      .typewriter-cursor {
+        display: inline-block;
+        width: 1.5px;
+        height: 1.2em;
+        background-color: var(--color-accent);
+        margin-left: 2px;
+        animation: blink 0.75s step-end infinite;
+        vertical-align: middle;
+        position: relative;
+        top: -0.05em;
+      }
+
+      @keyframes blink {
+        50% {
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <Header />
+    <main
+      id="main-content"
+      class="page-shell flex min-h-[calc(100vh-18rem)] items-center justify-center"
+    >
+      <section
+        class="quote-container mx-auto max-w-3xl space-y-6 sm:space-y-8 text-center px-4"
+      >
+        <!-- 幽灵占位符：用于提前撑开高度并固定垂直中心点 -->
+        <blockquote
+          class="quote-text quote-ghost space-y-4 sm:space-y-6 leading-relaxed"
+          aria-hidden="true"
+        >
+          <p>
+            <span class="block sm:inline">你所看到的不是真相，</span>
+            <span class="block sm:inline">而是一个视角。</span>
+          </p>
+          <p>
+            <span class="block sm:inline">你所听到的不是事实，</span>
+            <span class="block sm:inline">而是一种观点。</span>
+          </p>
+          <p class="quote-emphasis">「建构主义」</p>
+        </blockquote>
+
+        <!-- 真实显示并打字的 Blockquote -->
+        <blockquote
+          class="quote-text quote-actual space-y-4 sm:space-y-6 leading-relaxed"
+          id="typewriter-quote"
+        >
+          <p>
+            <span class="block sm:inline">你所看到的不是真相，</span>
+            <span class="block sm:inline">而是一个视角。</span>
+          </p>
+          <p>
+            <span class="block sm:inline">你所听到的不是事实，</span>
+            <span class="block sm:inline">而是一种观点。</span>
+          </p>
+          <p class="quote-emphasis">「建构主义」</p>
+        </blockquote>
+        <p
+          class="quote-source text-right text-base text-muted"
+          id="quote-source"
+        >
+          —— <a
+            class="text-secondary hover:text-accent">云梦雨</a
+          >
+        </p>
+      </section>
+    </main>
+    <Footer />
+    <script>
+      interface TypeTask {
+        node: Node;
+        text: string;
+        parent: HTMLElement;
+      }
+
+      function initTypewriter() {
+        const quoteElement = document.getElementById("typewriter-quote");
+        const sourceElement = document.getElementById("quote-source");
+        const ghostElement = document.querySelector(".quote-ghost");
+
+        if (!quoteElement || !sourceElement || !ghostElement) return;
+
+        // 重置状态（处理 bfcache 恢复的情况）
+        quoteElement.classList.remove("is-ready");
+        sourceElement.classList.remove("is-visible");
+        quoteElement.innerHTML = ghostElement.innerHTML;
+
+        // Skip typewriter for users who prefer reduced motion
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          quoteElement.classList.add("is-ready");
+          sourceElement.classList.add("is-visible");
+          return;
+        }
+
+        const tasks: TypeTask[] = [];
+        const walker = document.createTreeWalker(
+          quoteElement,
+          NodeFilter.SHOW_TEXT,
+          null
+        );
+
+        const cursor = document.createElement("span");
+        cursor.className = "typewriter-cursor";
+
+        let node: Node | null;
+        while ((node = walker.nextNode())) {
+          if (node.parentNode instanceof HTMLElement) {
+            tasks.push({
+              node: node,
+              text: node.nodeValue || "",
+              parent: node.parentNode,
+            });
+            node.nodeValue = "\u200B"; // 使用零宽空格占位
+          }
+        }
+
+        // 初始化准备就绪，显示语录
+        quoteElement.classList.add("is-ready");
+
+        let currentTaskIndex = 0;
+        let currentCharIndex = 0;
+
+        const type = () => {
+          if (currentTaskIndex < tasks.length) {
+            const { node, text, parent } = tasks[currentTaskIndex];
+
+            if (currentCharIndex < text.length) {
+              const char = text.charAt(currentCharIndex);
+
+              if (node.nodeValue === "\u200B") {
+                node.nodeValue = "";
+                parent.appendChild(cursor);
+              }
+
+              node.nodeValue += char;
+              (node as unknown as ChildNode).after(cursor);
+              currentCharIndex++;
+
+              // 业界级"流式自然"节奏
+              let delay = 60 + Math.random() * 15; // 稳定流速 (35ms-50ms)
+
+              // 重点词一字一顿策略
+              if (text.includes("不要忘了我")) {
+                delay = 80; // 稳定且略慢，增加郑重感
+              }
+
+              // 逻辑语义停顿 (极其短促，保持心流)
+              if (char === "，" || char === "：") {
+                delay = 120;
+              } else if (char === "。" || char === "！" || char === "？") {
+                delay = 250;
+              }
+
+              setTimeout(type, delay);
+            } else {
+              currentTaskIndex++;
+              currentCharIndex = 0;
+              setTimeout(type, 100); // 极短行间过渡
+            }
+          } else if (sourceElement) {
+            cursor.remove();
+            sourceElement.classList.add("is-visible");
+          }
+        };
+
+        // 适中启动速度
+        setTimeout(type, 600);
+      }
+
+      // 首次加载
+      initTypewriter();
+
+      // bfcache 恢复时重新播放打字机效果
+      window.addEventListener("pageshow", (event) => {
+        if (event.persisted) {
+          initTypewriter();
+        }
+      });
+    </script>
+  </body>
+</html>

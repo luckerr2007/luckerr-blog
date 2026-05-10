@@ -1,0 +1,16 @@
+- [x] 编辑器代码全部位于 `src/pages/editor/` 和 `public/editor/` 独立文件夹中
+- [x] `src/scripts/editor.js` 已删除，无残留引用
+- [x] Vditor 通过 CDN 加载并正常渲染（ir 即时渲染模式）
+- [x] Frontmatter 面板包含标题、Slug、日期、分类、语言、标签、摘要、集合选择字段
+- [x] 加密文章开关启用时显示密码和提示字段，取消时隐藏并清空
+- [x] 标签输入支持 Enter 添加、Backspace 删除、点击 × 移除
+- [x] 日期字段默认填充当天日期
+- [x] 导出 .md 文件功能正常，文件名 slug 化，包含完整 Frontmatter
+- [x] 复制到剪贴板功能正常，显示 Toast 提示
+- [x] localStorage 草稿 5 秒防抖自动保存功能正常
+- [x] 草稿恢复提示功能正常，恢复时填充所有字段
+- [x] 所有 UI 使用 tokens.css CSS 变量，无硬编码颜色/间距/圆角
+- [x] 暗黑模式下编辑器界面（含 Vditor）正常显示
+- [x] 移动端响应式布局正常（单栏、Frontmatter 可折叠）
+- [x] Toast 提示使用 surface-card 样式，符合设计规范
+- [x] Header 导航中包含编辑器入口

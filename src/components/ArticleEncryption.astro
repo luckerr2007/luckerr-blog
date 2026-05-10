@@ -1,0 +1,162 @@
+---
+/**
+ * ArticleEncryption - 文章加密组件
+ * 支持密码验证解锁文章内容
+ *
+ * 用法：在文章 frontmatter 中添加 encrypted: true 和 password: "your-password"
+ */
+
+interface Props {
+    password?: string;
+    hint?: string;
+}
+
+const { password, hint } = Astro.props;
+
+// 如果没有设置密码，不显示加密界面
+if (!password) return;
+
+const locale = Astro.currentLocale === "en" ? "en" : "zh";
+const labels = {
+    title: locale === "en" ? "Encrypted Content" : "加密内容",
+    description:
+        locale === "en"
+            ? "This article is password protected. Please enter the password to view."
+            : "本文已加密，请输入密码查看。",
+    placeholder: locale === "en" ? "Enter password" : "输入密码",
+    submit: locale === "en" ? "Unlock" : "解锁",
+    error: locale === "en" ? "Incorrect password" : "密码错误",
+    hint: locale === "en" ? "Hint" : "提示",
+};
+
+const articleId = Math.random().toString(36).substring(2, 10);
+---
+
+<div class="encryption-wrapper" data-encryption-wrapper data-article-id={articleId}>
+    <!-- 加密遮罩 -->
+    <div class="encryption-mask surface-card surface-card--soft p-8 text-center" data-encryption-mask>
+        <div class="mb-6">
+            <svg class="w-16 h-16 mx-auto text-accent mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+            </svg>
+            <h3 class="text-xl font-semibold text-primary mb-2">{labels.title}</h3>
+            <p class="text-secondary text-sm">{labels.description}</p>
+        </div>
+        
+        {hint && (
+            <div class="mb-4 p-3 rounded-md surface-card surface-card--flat text-sm text-secondary">
+                <span class="font-medium">{labels.hint}:</span> {hint}
+            </div>
+        )}
+        
+        <form class="encryption-form flex flex-col gap-3 max-w-xs mx-auto" data-encryption-form>
+            <input
+                type="password"
+                class="encryption-input w-full px-4 py-2.5 rounded-md border border-border-subtle bg-surface text-primary placeholder:text-muted focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all"
+                placeholder={labels.placeholder}
+                data-password-input
+                required
+            />
+            <button
+                type="submit"
+                class="encryption-submit w-full px-4 py-2.5 rounded-md bg-accent text-white font-medium hover:bg-accent-dark transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50"
+            >
+                {labels.submit}
+            </button>
+        </form>
+        
+        <p class="encryption-error mt-3 text-sm text-danger hidden" data-error-message>{labels.error}</p>
+    </div>
+    
+    <!-- 加密的内容容器 -->
+    <div class="encrypted-content hidden" data-encrypted-content data-password={password}>
+        <slot />
+    </div>
+</div>
+
+<script is:inline define:vars={{ articleId, password }}>
+    (function() {
+        const wrapper = document.querySelector(`[data-article-id="${articleId}"]`);
+        if (!wrapper) return;
+        
+        const mask = wrapper.querySelector('[data-encryption-mask]');
+        const content = wrapper.querySelector('[data-encrypted-content]');
+        const form = wrapper.querySelector('[data-encryption-form]');
+        const input = wrapper.querySelector('[data-password-input]');
+        const errorMsg = wrapper.querySelector('[data-error-message]');
+        
+        // 检查是否已经解锁（使用 sessionStorage）
+        const storageKey = `article_unlocked_${articleId}`;
+        if (sessionStorage.getItem(storageKey) === 'true') {
+            showContent();
+        }
+        
+        form?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const enteredPassword = input?.value?.trim();
+            
+            if (enteredPassword === password) {
+                sessionStorage.setItem(storageKey, 'true');
+                showContent();
+            } else {
+                errorMsg?.classList.remove('hidden');
+                input?.classList.add('border-danger');
+                setTimeout(() => {
+                    input?.classList.remove('border-danger');
+                }, 2000);
+            }
+        });
+        
+        function showContent() {
+            mask?.classList.add('hidden');
+            content?.classList.remove('hidden');
+            // 触发内容显示动画
+            content?.classList.add('animate-fade-in');
+        }
+    })();
+</script>
+
+<style>
+    .encryption-wrapper {
+        position: relative;
+    }
+
+    .encryption-mask {
+        min-height: 300px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    /* 显式定义 hidden 类 */
+    .hidden {
+        display: none !important;
+    }
+
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* 输入框错误状态 */
+    .encryption-input.border-danger {
+        border-color: var(--color-danger);
+        animation: shake 0.3s ease-out;
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+</style>

@@ -1,0 +1,92 @@
+---
+import IconArticle from "~icons/ri/article-line";
+import IconCCBy from "~icons/ri/creative-commons-by-fill";
+import IconCC from "~icons/ri/creative-commons-fill";
+import IconCCNc from "~icons/ri/creative-commons-nc-fill";
+import IconCCSa from "~icons/ri/creative-commons-sa-fill";
+import IconFileText from "~icons/ri/file-text-line";
+import IconGithub from "~icons/ri/github-fill";
+import IconMail from "~icons/ri/mail-fill";
+import IconTime from "~icons/ri/time-line";
+import { SOCIAL_LINKS } from "../consts";
+import { getSiteStats } from "../utils/site-stats";
+import PostPreviewSetup from "./PostPreviewSetup.astro";
+
+const today = new Date();
+const iconButtonClass = "icon-btn icon-btn--md icon-btn--round focus-accent";
+const iconClass = "h-7 w-7";
+
+const locale = Astro.currentLocale === "en" ? "en" : "zh";
+const ccTitle =
+    locale === "en"
+        ? "Content licensed under CC BY-NC-SA 4.0"
+        : "本站内容采用 CC BY-NC-SA 4.0 国际许可协议";
+
+const { totalChars, totalMinutes, totalArticles } = await getSiteStats();
+const charsDisplay = totalChars >= 1000 ? `${Math.round(totalChars / 1000)}k` : String(totalChars);
+const hours = Math.floor(totalMinutes / 60);
+const mins = totalMinutes % 60;
+const timeDisplay = `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
+---
+
+<footer class="bg-page py-12 text-center text-sm text-secondary">
+    <div class="mx-auto max-w-5xl px-4 sm:px-6 space-y-6">
+        <div class="inline-flex flex-wrap items-center justify-center gap-3">
+            <a
+                href={SOCIAL_LINKS.github}
+                target="_blank"
+                rel="noreferrer"
+                title={SOCIAL_LINKS.github}
+                class={iconButtonClass}
+            >
+                <span class="sr-only">Go to GitHub</span>
+                <IconGithub class={iconClass} aria-hidden="true" />
+            </a>
+            <a
+                href={SOCIAL_LINKS.email}
+                title={SOCIAL_LINKS.email.replace("mailto:", "")}
+                class={iconButtonClass}
+            >
+                <span class="sr-only">Send email</span>
+                <IconMail class={iconClass} aria-hidden="true" />
+            </a>
+        </div>
+        <div class="flex flex-wrap items-center justify-center gap-6 text-muted text-sm">
+            <span class="inline-flex items-center gap-2 opacity-75 transition-opacity hover:opacity-100">
+                <IconFileText class="h-4 w-4" aria-hidden="true" />
+                <span class="font-medium">{charsDisplay}</span>
+                <span class="text-xs">字</span>
+            </span>
+            <span class="h-4 w-px bg-border-subtle"></span>
+            <span class="inline-flex items-center gap-2 opacity-75 transition-opacity hover:opacity-100" title={locale === "en" ? "Estimated total reading time" : "预计总阅读时长"}>
+                <IconTime class="h-4 w-4" aria-hidden="true" />
+                <span class="font-medium">{timeDisplay}</span>
+            </span>
+            <span class="h-4 w-px bg-border-subtle"></span>
+            <span class="inline-flex items-center gap-2 opacity-75 transition-opacity hover:opacity-100">
+                <IconArticle class="h-4 w-4" aria-hidden="true" />
+                <span class="font-medium">{totalArticles}</span>
+                <span class="text-xs">篇</span>
+            </span>
+        </div>
+        <div class="text-muted">
+            &copy; {today.getFullYear()} 云梦雨.
+            <a
+                href="https://creativecommons.org/licenses/by-nc-sa/4.0/"
+                target="_blank"
+                rel="license noopener noreferrer"
+                class="inline-flex items-center gap-2 transition-colors hover:text-accent"
+                title={ccTitle}
+            >
+                <span>CC BY-NC-SA 4.0</span>
+                <span class="inline-flex items-center gap-1 text-base text-secondary">
+                    <IconCC class="h-4 w-4" aria-hidden="true" />
+                    <IconCCBy class="h-4 w-4" aria-hidden="true" />
+                    <IconCCNc class="h-4 w-4" aria-hidden="true" />
+                    <IconCCSa class="h-4 w-4" aria-hidden="true" />
+                </span>
+            </a>
+        </div>
+    </div>
+</footer>
+<PostPreviewSetup />

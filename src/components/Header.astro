@@ -1,0 +1,381 @@
+---
+import { getLocale, t } from "../i18n/ui";
+import { localePath } from "../utils/i18n";
+import SearchModal from "./SearchModal.astro";
+import ThemeToggle from "./ThemeToggle.astro";
+
+const locale = getLocale(Astro.currentLocale);
+const homeHref = localePath("/", locale);
+
+const isDev = import.meta.env.DEV;
+
+const navItems =
+    locale === "zh"
+        ? [
+              { href: "/", label: t(locale, "nav.home") },
+              {
+                  label: t(locale, "nav.blog"),
+                  href: "/blog",
+                  children: [
+                      { href: "/categories", label: t(locale, "nav.categories") },
+                  ],
+              },
+              { href: "/about", label: t(locale, "nav.about") },
+              ...(isDev ? [{ href: "/editor", label: t(locale, "nav.editor") }] : []),
+          ]
+        : [
+              {
+                  label: t(locale, "nav.blog"),
+                  href: localePath("/blog", locale),
+                  children: [
+                      { href: localePath("/categories", locale), label: t(locale, "nav.categories") },
+                  ],
+              },
+              ...(isDev ? [{ href: "/editor", label: t(locale, "nav.editor") }] : []),
+          ];
+
+const pathname = Astro.url.pathname.replace(import.meta.env.BASE_URL, "");
+const firstSegment = pathname.match(/^[^/]+/)?.[0] || "";
+const isActive = (href: string) => href === pathname || href === `/${firstSegment}`;
+---
+
+<header
+    class="bg-surface border-b border-border"
+>
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-surface focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg focus:text-primary focus:border focus:border-border">
+        {t(locale, "nav.skipToContent")}
+    </a>
+    <nav
+        aria-label={t(locale, "nav.mainNav")}
+        class="mx-auto flex w-full max-w-5xl items-center gap-3 px-4 py-3 sm:gap-4 sm:px-6"
+    >
+        <h2
+            class="text-[1.05rem] font-semibold tracking-tight text-primary sm:text-[1.1rem]"
+        >
+            <a
+                href={homeHref}
+                class="transition-interactive hover:text-accent focus-accent"
+            >
+                {t(locale, "site.title")}
+            </a>
+        </h2>
+        <SearchModal />
+        <ThemeToggle variant="header" />
+        <div class="ml-auto flex items-center gap-2 sm:gap-3">
+            <button
+                type="button"
+                class="icon-btn icon-btn--sm icon-btn--square icon-btn--bordered focus-accent md:hidden"
+                aria-label={t(locale, "nav.openMenu")}
+                aria-expanded="false"
+                data-nav-toggle
+                data-label-open={t(locale, "nav.openMenu")}
+                data-label-close={t(locale, "nav.closeMenu")}
+            >
+                <span
+                    aria-hidden="true"
+                    class="flex h-4 w-5 flex-col justify-between"
+                >
+                    <span
+                        class="h-0.5 w-full rounded-full bg-current transition-transform duration-300"
+                        data-bar-top></span>
+                    <span
+                        class="h-0.5 w-full rounded-full bg-current transition-opacity duration-300"
+                        data-bar-middle></span>
+                    <span
+                        class="h-0.5 w-full rounded-full bg-current transition-transform duration-300"
+                        data-bar-bottom></span>
+                </span>
+            </button>
+            <div class="hidden items-center gap-2 sm:gap-3 md:flex" data-no-preview>
+                {
+                    navItems.map((item) =>
+                        "children" in item && item.children ? (
+                            <div class="nav-dropdown" data-dropdown>
+                                <a
+                                    href={item.href}
+                                    class:list={[
+                                        "nav-dropdown-trigger px-3 py-2 text-[0.95rem] font-medium tracking-wide text-secondary border-b-2 border-transparent transition-interactive hover:text-accent hover:border-b-accent focus-accent inline-flex items-center gap-1",
+                                        { "text-accent border-b-accent": isActive(item.href) },
+                                    ]}
+                                >
+                                    {item.label}
+                                    <svg class="nav-dropdown-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                                        <path d="M3 5L6 8L9 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </a>
+                                <div class="nav-dropdown-menu">
+                                    {item.children.map((child) => (
+                                        <a
+                                            href={child.href}
+                                            class:list={[
+                                                "nav-dropdown-item",
+                                                { "nav-dropdown-item--active": isActive(child.href) },
+                                            ]}
+                                        >
+                                            {child.label}
+                                        </a>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <a
+                                href={item.href}
+                                class:list={[
+                                    "px-3 py-2 text-[0.95rem] font-medium tracking-wide text-secondary border-b-2 border-transparent transition-interactive hover:text-accent hover:border-b-accent focus-accent",
+                                    { "text-accent border-b-accent": isActive(item.href!) },
+                                ]}
+                                aria-current={isActive(item.href!) ? "page" : undefined}
+                            >
+                                {item.label}
+                            </a>
+                        ),
+                    )
+                }
+            </div>
+        </div>
+    </nav>
+    <div
+        data-nav-overlay
+        class="fixed inset-0 z-40 flex items-start justify-end bg-black/30 opacity-0 transition-opacity duration-300 pointer-events-none md:hidden"
+        data-nav-state="closed"
+    >
+        <button
+            type="button"
+            class="absolute inset-0 h-full w-full cursor-default"
+            data-nav-close
+            aria-label={t(locale, "nav.closeMenu")}></button>
+        <div
+            data-nav-drawer
+            class="relative z-10 flex h-full w-72 max-w-[80vw] translate-x-full flex-col gap-6 border-l border-border bg-surface p-6 text-primary shadow-xl transition-transform duration-300 ease-out"
+        >
+            <div class="flex items-center justify-between">
+                <span
+                    class="text-sm font-semibold uppercase tracking-[0.25em] text-[color-mix(in_srgb,var(--color-text-muted)_70%,transparent)]"
+                >
+                    Menu
+                </span>
+                <button
+                    type="button"
+                    class="icon-btn icon-btn--sm icon-btn--square focus-accent"
+                    data-nav-close
+                    aria-label={t(locale, "nav.closeMenu")}
+                >
+                    <span aria-hidden="true" class="text-xl leading-none"
+                        >×</span
+                    >
+                </button>
+            </div>
+            <nav aria-label={t(locale, "nav.mobileNav")} class="flex flex-col gap-2 text-base" data-no-preview>
+                {
+                    navItems.map((item) =>
+                        "children" in item && item.children ? (
+                            <div class="flex flex-col">
+                                <a
+                                    href={item.href}
+                                    class:list={[
+                                        "inline-flex items-center rounded-md px-3 py-3 transition-interactive focus-accent",
+                                        isActive(item.href)
+                                            ? "bg-accent-tint-12 text-accent font-semibold"
+                                            : "text-secondary hover:text-accent hover:bg-accent-tint-8",
+                                    ]}
+                                    data-nav-link
+                                >
+                                    {item.label}
+                                </a>
+                                <div class="ml-4 flex flex-col gap-1 border-l border-border pl-3">
+                                    {item.children.map((child) => (
+                                        <a
+                                            href={child.href}
+                                            class:list={[
+                                                "inline-flex items-center rounded-md px-3 py-2 text-sm transition-interactive focus-accent",
+                                                isActive(child.href)
+                                                    ? "bg-accent-tint-12 text-accent font-semibold"
+                                                    : "text-muted hover:text-accent hover:bg-accent-tint-8",
+                                            ]}
+                                            data-nav-link
+                                        >
+                                            {child.label}
+                                        </a>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <a
+                                href={item.href}
+                                class:list={[
+                                    "inline-flex items-center rounded-md px-3 py-3 transition-interactive focus-accent",
+                                    isActive(item.href!)
+                                        ? "bg-accent-tint-12 text-accent font-semibold"
+                                        : "text-secondary hover:text-accent hover:bg-accent-tint-8",
+                                ]}
+                                data-nav-link
+                            >
+                                {item.label}
+                            </a>
+                        ),
+                    )
+                }
+            </nav>
+        </div>
+    </div>
+    <link
+        rel="alternate"
+        type="application/rss+xml"
+        title={t(locale, "site.title")}
+        href={new URL("rss.xml", Astro.site)}
+    />
+</header>
+
+<style>
+    .nav-dropdown {
+        position: relative;
+    }
+
+    .nav-dropdown-trigger {
+        cursor: pointer;
+    }
+
+    .nav-dropdown-arrow {
+        transition: transform var(--transition-base);
+    }
+
+    .nav-dropdown:hover .nav-dropdown-arrow,
+    .nav-dropdown:focus-within .nav-dropdown-arrow {
+        transform: rotate(180deg);
+    }
+
+    .nav-dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        min-width: 8rem;
+        padding: var(--space-1) 0;
+        background: var(--color-bg-surface);
+        border: 1px solid var(--color-border-soft);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-soft);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateX(-50%) translateY(var(--space-1));
+        transition: opacity var(--transition-base), visibility var(--transition-base), transform var(--transition-base);
+        z-index: 50;
+    }
+
+    .nav-dropdown:hover .nav-dropdown-menu,
+    .nav-dropdown:focus-within .nav-dropdown-menu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    .nav-dropdown-item {
+        display: block;
+        padding: var(--space-2) var(--space-4);
+        font-size: var(--font-size-sm);
+        font-weight: 500;
+        color: var(--color-text-secondary);
+        transition: color var(--transition-fast), background var(--transition-fast);
+        white-space: nowrap;
+    }
+
+    .nav-dropdown-item:hover,
+    .nav-dropdown-item:focus {
+        color: var(--color-accent);
+        background: var(--color-accent-tint-6, color-mix(in srgb, var(--color-accent) 6%, transparent));
+    }
+
+    .nav-dropdown-item--active {
+        color: var(--color-accent);
+        font-weight: 600;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .nav-dropdown-menu,
+        .nav-dropdown-arrow,
+        .nav-dropdown-item {
+            transition-duration: 0.01ms;
+        }
+    }
+</style>
+
+<script is:inline>
+    const toggleButton = document.querySelector("[data-nav-toggle]");
+    const overlay = document.querySelector("[data-nav-overlay]");
+    const drawer = document.querySelector("[data-nav-drawer]");
+    const closeButtons = document.querySelectorAll("[data-nav-close]");
+    const navLinks = document.querySelectorAll("[data-nav-link]");
+    const barTop = toggleButton?.querySelector("[data-bar-top]");
+    const barMiddle = toggleButton?.querySelector("[data-bar-middle]");
+    const barBottom = toggleButton?.querySelector("[data-bar-bottom]");
+    let lastFocusedElement = null;
+
+    const toggleClasses = (el, add, remove) => {
+        if (!el) return;
+        el.classList.remove(...remove);
+        el.classList.add(...add);
+    };
+
+    const setOpen = (open) => {
+        if (!overlay || !drawer) return;
+
+        overlay.dataset.navState = open ? "open" : "closed";
+        toggleButton?.setAttribute("aria-expanded", String(open));
+        toggleButton?.setAttribute("aria-label", open ? (toggleButton.dataset.labelClose || "Close") : (toggleButton.dataset.labelOpen || "Open"));
+
+        if (open) {
+            lastFocusedElement = document.activeElement;
+            toggleClasses(overlay, ["opacity-100"], ["pointer-events-none", "opacity-0"]);
+            toggleClasses(drawer, ["translate-x-0"], ["translate-x-full"]);
+            toggleClasses(barTop, ["translate-y-1.5", "rotate-45"], []);
+            toggleClasses(barBottom, ["-translate-y-1.5", "-rotate-45"], []);
+            toggleClasses(barMiddle, ["opacity-0"], []);
+            document.body.classList.add("scroll-locked");
+            requestAnimationFrame(() => navLinks[0]?.focus({ preventScroll: true }));
+        } else {
+            toggleClasses(overlay, ["opacity-0", "pointer-events-none"], ["opacity-100"]);
+            toggleClasses(drawer, ["translate-x-full"], ["translate-x-0"]);
+            toggleClasses(barTop, [], ["translate-y-1.5", "rotate-45"]);
+            toggleClasses(barBottom, [], ["-translate-y-1.5", "-rotate-45"]);
+            toggleClasses(barMiddle, [], ["opacity-0"]);
+            document.body.classList.remove("scroll-locked");
+            if (lastFocusedElement && "focus" in lastFocusedElement) {
+                lastFocusedElement.focus({ preventScroll: true });
+            }
+        }
+    };
+
+    toggleButton?.addEventListener("click", () => setOpen(overlay?.dataset.navState !== "open"));
+    closeButtons.forEach((btn) => btn.addEventListener("click", () => setOpen(false)));
+    overlay?.addEventListener("click", (e) => e.target === overlay && setOpen(false));
+    document.addEventListener("keydown", (e) => {
+        if (overlay?.dataset.navState !== "open") return;
+
+        if (e.key === "Escape") {
+            setOpen(false);
+            return;
+        }
+
+        if (e.key === "Tab" && drawer) {
+            const focusable = [...drawer.querySelectorAll(
+                'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+            )];
+            if (focusable.length === 0) return;
+
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+
+            if (e.shiftKey && document.activeElement === first) {
+                e.preventDefault();
+                last.focus();
+            } else if (!e.shiftKey && document.activeElement === last) {
+                e.preventDefault();
+                first.focus();
+            }
+        }
+    });
+    navLinks.forEach((link) => link.addEventListener("click", () => setOpen(false)));
+
+    const mdQuery = window.matchMedia("(min-width: 768px)");
+    mdQuery.addEventListener("change", (e) => e.matches && setOpen(false));
+</script>

@@ -1,0 +1,144 @@
+---
+import BaseHead from "../../components/BaseHead.astro";
+import Footer from "../../components/Footer.astro";
+import Header from "../../components/Header.astro";
+import { SITE_TITLE } from "../../consts";
+
+if (import.meta.env.PROD) {
+    return Astro.redirect("/");
+}
+---
+
+<!doctype html>
+<html lang="zh-CN">
+    <head>
+        <BaseHead title={`文章上传 · ${SITE_TITLE}`} description="文章上传管理" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vditor@3.10.8/dist/index.css" />
+        <link rel="stylesheet" href="/editor/editor.css" />
+    </head>
+    <body>
+        <Header />
+        <main id="main-content" class="editor-page">
+            <div id="editor-app" class="editor-main">
+                <div class="editor-header">
+                    <h1 class="editor-title">文章上传</h1>
+                    <div class="editor-actions">
+                        <button class="editor-btn editor-btn--primary" id="btn-upload" type="button" disabled>
+                            上传至文件夹
+                        </button>
+                    </div>
+                </div>
+
+                <div class="editor-upload-zone" id="upload-zone">
+                    <div class="editor-upload-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                    </div>
+                    <p class="editor-upload-text">拖拽 .md 文件到此处，或点击选择文件</p>
+                    <p class="editor-upload-hint">支持 .md / .mdx 格式</p>
+                    <input type="file" id="file-input" accept=".md,.mdx" style="display:none;" />
+                </div>
+
+                <div class="editor-body" id="editor-body" style="display:none;">
+                    <div class="editor-panel">
+                        <div class="editor-panel-header">
+                            <span class="editor-panel-label">元信息</span>
+                            <button class="frontmatter-collapse-btn" type="button" aria-expanded="true">
+                                展开/收起
+                            </button>
+                        </div>
+                        <div class="editor-panel-body">
+                            <div class="frontmatter-section">
+                                <div class="frontmatter-field">
+                                    <label class="frontmatter-label" for="fm-title">标题</label>
+                                    <input class="frontmatter-input" id="fm-title" type="text" placeholder="输入文章标题..." />
+                                </div>
+                                <div class="frontmatter-row">
+                                    <div class="frontmatter-field">
+                                        <label class="frontmatter-label" for="fm-slug">Slug / 文件名</label>
+                                        <input class="frontmatter-input" id="fm-slug" type="text" placeholder="article-slug" />
+                                    </div>
+                                    <div class="frontmatter-field">
+                                        <label class="frontmatter-label" for="fm-pubDate">日期</label>
+                                        <input class="frontmatter-input" id="fm-pubDate" type="date" />
+                                    </div>
+                                </div>
+                                <div class="frontmatter-row">
+                                    <div class="frontmatter-field">
+                                        <label class="frontmatter-label" for="fm-collection">集合</label>
+                                        <select class="frontmatter-input" id="fm-collection">
+                                            <option value="blog">Blog</option>
+                                            <option value="monthly">Monthly</option>
+                                            <option value="til">TIL</option>
+                                        </select>
+                                    </div>
+                                    <div class="frontmatter-field">
+                                        <label class="frontmatter-label" for="fm-lang">语言</label>
+                                        <select class="frontmatter-input" id="fm-lang">
+                                            <option value="zh">中文</option>
+                                            <option value="en">English</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="frontmatter-field">
+                                    <label class="frontmatter-label" for="fm-category">分类</label>
+                                    <input class="frontmatter-input" id="fm-category" type="text" placeholder="分类名称" />
+                                </div>
+                                <div class="frontmatter-field">
+                                    <label class="frontmatter-label">标签</label>
+                                    <div class="frontmatter-tags" id="fm-tags-container">
+                                        <input class="frontmatter-tag-input" id="fm-tags-input" type="text" placeholder="输入标签后按 Enter..." />
+                                    </div>
+                                </div>
+                                <div class="frontmatter-field">
+                                    <label class="frontmatter-label" for="fm-description">摘要</label>
+                                    <textarea class="frontmatter-input" id="fm-description" rows="2" placeholder="文章摘要..." style="resize: vertical;"></textarea>
+                                </div>
+                                <div class="frontmatter-field">
+                                    <div class="frontmatter-toggle">
+                                        <input type="checkbox" id="fm-encrypted" style="accent-color: var(--color-accent);" />
+                                        <label class="frontmatter-label" for="fm-encrypted" style="margin: 0;">加密文章</label>
+                                    </div>
+                                </div>
+                                <div id="fm-encryption-fields" class="frontmatter-row frontmatter-encryption-fields">
+                                    <div class="frontmatter-field">
+                                        <label class="frontmatter-label" for="fm-password">密码</label>
+                                        <input class="frontmatter-input" id="fm-password" type="text" placeholder="输入加密密码..." />
+                                    </div>
+                                    <div class="frontmatter-field">
+                                        <label class="frontmatter-label" for="fm-passwordHint">密码提示</label>
+                                        <input class="frontmatter-input" id="fm-passwordHint" type="text" placeholder="可选提示..." />
+                                    </div>
+                                </div>
+                                <div class="frontmatter-field">
+                                    <span class="frontmatter-label">写入路径</span>
+                                    <span id="fm-collection-hint" style="font-size: var(--font-size-sm); color: var(--color-text-muted);"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="editor-panel preview-panel">
+                        <div class="editor-panel-header">
+                            <span class="editor-panel-label">预览</span>
+                        </div>
+                        <div class="editor-panel-body">
+                            <div class="preview-content" id="preview-content"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="editor-file-info" id="file-info" style="display:none;">
+                    <span class="editor-file-name" id="file-name"></span>
+                    <button class="editor-btn editor-btn--ghost" id="btn-clear" type="button">清除重选</button>
+                </div>
+                <div id="vditor-render" style="display:none;"></div>
+            </div>
+        </main>
+        <Footer />
+        <script is:inline src="https://cdn.jsdelivr.net/npm/vditor@3.10.8/dist/index.min.js"></script>
+        <script is:inline src="/editor/editor.js"></script>
+    </body>
+</html>

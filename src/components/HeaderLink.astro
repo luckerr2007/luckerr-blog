@@ -1,0 +1,23 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+type Props = HTMLAttributes<"a">;
+
+const { href, class: className, ...props } = Astro.props;
+const pathname = Astro.url.pathname.replace(import.meta.env.BASE_URL, "");
+const firstSegment = pathname.match(/^[^/]+/)?.[0] || "";
+const isActive = href === pathname || href === `/${firstSegment}`;
+---
+
+<a
+	href={href}
+	class:list={[
+		"px-3 py-2 text-[0.95rem] font-medium tracking-wide text-secondary border-b-2 border-transparent transition-interactive hover:text-accent hover:border-b-accent focus-accent",
+		className,
+		{ "text-accent border-b-accent": isActive },
+	]}
+	aria-current={isActive ? "page" : undefined}
+	{...props}
+>
+	<slot />
+</a>

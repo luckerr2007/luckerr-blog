@@ -1,0 +1,228 @@
+---
+title: "图表功能测试"
+description: "测试 Mermaid 和 ECharts 图表渲染能力"
+pubDate: 2026-05-09
+tags: ["test", "charts"]
+---
+
+import EChart from "../../../components/EChart.astro";
+
+这是一篇用于测试博客图表功能的文章，包含 **Mermaid** 和 **ECharts** 两种图表方案。
+
+## Mermaid 图表
+
+### 甘特图
+
+```mermaid
+gantt
+    title 项目进度计划
+    dateFormat  YYYY-MM-DD
+    section 设计阶段
+    需求分析           :a1, 2026-01-01, 10d
+    原型设计           :a2, after a1, 8d
+    UI 设计            :a3, after a2, 12d
+    section 开发阶段
+    前端开发           :b1, after a3, 15d
+    后端开发           :b2, after a3, 20d
+    API 集成           :b3, after b1, 7d
+    section 测试上线
+    测试               :c1, after b2, 10d
+    部署上线           :c2, after c1, 3d
+```
+
+### 流程图
+
+```mermaid
+flowchart TD
+    A[用户访问] --> B{是否登录}
+    B -->|是| C[显示主页]
+    B -->|否| D[跳转登录页]
+    D --> E[输入账号密码]
+    E --> F{验证成功}
+    F -->|是| C
+    F -->|否| D
+    C --> G[浏览内容]
+    G --> H[离开]
+```
+
+### 时序图
+
+```mermaid
+sequenceDiagram
+    participant U as 用户
+    participant F as 前端
+    participant S as 服务器
+    participant D as 数据库
+
+    U->>F: 点击登录
+    F->>S: POST /api/login
+    S->>D: 查询用户信息
+    D-->>S: 返回用户数据
+    S-->>F: 返回 token
+    F-->>U: 显示主页
+```
+
+### 饼图
+
+```mermaid
+pie showData
+    title 技术栈使用比例
+    "JavaScript" : 40
+    "TypeScript" : 25
+    "Python" : 20
+    "其他" : 15
+```
+
+### 类图
+
+```mermaid
+classDiagram
+    class Animal {
+        +String name
+        +int age
+        +makeSound()
+    }
+    class Dog {
+        +String breed
+        +bark()
+    }
+    class Cat {
+        +String color
+        +meow()
+    }
+    Animal <|-- Dog
+    Animal <|-- Cat
+```
+
+## ECharts 交互式图表
+
+以下图表支持鼠标悬停、缩放等交互操作，并会自动跟随明暗主题切换。
+
+### 柱状图对比
+
+<EChart option={{
+    title: { text: "2026年月度阅读量", left: "center" },
+    tooltip: { trigger: "axis" },
+    xAxis: { type: "category", data: ["1月", "2月", "3月", "4月", "5月", "6月"] },
+    yAxis: { type: "value" },
+    series: [{
+        type: "bar",
+        data: [120, 200, 150, 80, 70, 110],
+        barWidth: "40%"
+    }]
+}} />
+
+### 折线图趋势
+
+<EChart option={{
+    title: { text: "文章阅读量趋势", left: "center" },
+    tooltip: { trigger: "axis" },
+    xAxis: { type: "category", data: ["周一", "周二", "周三", "周四", "周五", "周六", "周日"] },
+    yAxis: { type: "value" },
+    series: [{
+        type: "line",
+        data: [820, 932, 901, 934, 1290, 1330, 1320],
+        smooth: true,
+        areaStyle: { opacity: 0.15 },
+        lineStyle: { width: 3 }
+    }]
+}} />
+
+### 饼图分布
+
+<EChart option={{
+    title: { text: "内容类型分布", left: "center" },
+    tooltip: { trigger: "item" },
+    legend: { bottom: "0%" },
+    series: [{
+        type: "pie",
+        radius: ["40%", "70%"],
+        avoidLabelOverlap: true,
+        itemStyle: { borderRadius: 6 },
+        label: { formatter: "{b}: {d}%" },
+        data: [
+            { name: "技术文章", value: 35 },
+            { name: "生活随笔", value: 25 },
+            { name: "读书笔记", value: 20 },
+            { name: "影视评论", value: 20 }
+        ]
+    }]
+}} />
+
+### 雷达图能力评估
+
+<EChart option={{
+    title: { text: "技能雷达图", left: "center" },
+    tooltip: { trigger: "item" },
+    radar: {
+        indicator: [
+            { name: "前端", max: 100 },
+            { name: "后端", max: 100 },
+            { name: "设计", max: 100 },
+            { name: "运维", max: 100 },
+            { name: "算法", max: 100 }
+        ]
+    },
+    series: [{
+        type: "radar",
+        data: [{
+            name: "当前水平",
+            value: [85, 70, 65, 55, 60],
+            areaStyle: { opacity: 0.3 }
+        }]
+    }]
+}} />
+
+### 仪表盘进度
+
+<EChart option={{
+    title: { text: "项目完成度", left: "center" },
+    series: [{
+        type: "gauge",
+        progress: { show: true, width: 14 },
+        axisLine: { lineStyle: { width: 14 } },
+        detail: {
+            valueAnimation: true,
+            formatter: "{value}%",
+            fontSize: 24,
+            offsetCenter: [0, "70%"]
+        },
+        data: [{ value: 78 }]
+    }]
+}} />
+
+### 漏斗图转化
+
+<EChart option={{
+    title: { text: "用户转化漏斗", left: "center" },
+    tooltip: { trigger: "item" },
+    series: [{
+        type: "funnel",
+        left: "15%",
+        top: 40,
+        bottom: 40,
+        width: "70%",
+        min: 0,
+        max: 1000,
+        sort: "descending",
+        gap: 4,
+        label: { show: true, position: "inside" },
+        data: [
+            { name: "访问", value: 1000 },
+            { name: "注册", value: 600 },
+            { name: "活跃", value: 350 },
+            { name: "付费", value: 120 }
+        ]
+    }]
+}} />
+
+## 总结
+
+本博客现已支持以下图表类型：
+
+| 方案 | 支持类型 | 交互性 |
+|------|---------|--------|
+| **Mermaid** | 流程图、时序图、甘特图、类图、状态图、饼图、思维导图 | 静态 SVG |
+| **ECharts** | 柱状图、折线图、饼图、散点图、雷达图、仪表盘、漏斗图、桑基图、树形图 | 完整交互 |
+
+在 Markdown 中直接使用 `mermaid` 代码块即可渲染 Mermaid 图表，在 MDX 中通过 `<EChart>` 组件可创建交互式图表。

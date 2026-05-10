@@ -1,0 +1,176 @@
+---
+// ShareSidebar.astro - Fixed sidebar for social sharing
+// Follows Vercel Design Guidelines: keyboard accessible, focus visible, 44px touch targets
+import IconCheck from "~icons/ri/check-line";
+import IconLink from "~icons/ri/link";
+import IconShare from "~icons/ri/share-line";
+
+interface Props {
+    title: string;
+    description?: string;
+    tags?: string[];
+    url?: string;
+    slug: string;
+}
+
+const { title, description, tags = [], url = Astro.url.href, slug } = Astro.props;
+
+// Locale detection for i18n
+const locale = Astro.currentLocale === "en" ? "en" : "zh";
+const shareLabels = {
+    shareArticle: locale === "en" ? "Share article" : "分享文章",
+    copyLink: locale === "en" ? "Copy link" : "复制链接",
+    copied: locale === "en" ? "Link copied" : "链接已复制",
+};
+---
+
+<!-- Desktop: Fixed sidebar on left (symmetric to TOC on right) -->
+<aside
+    data-share-sidebar
+    class="hidden min-[900px]:flex fixed flex-col gap-3 opacity-0 transition-opacity duration-200 mt-[5px]"
+    style="right: calc(50% + 25rem + 2rem); top: 6rem;"
+    aria-label={shareLabels.shareArticle}
+>
+    <button
+        type="button"
+        class="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-surface shadow-sm transition-all hover:border-accent hover:text-accent hover:shadow-md focus-accent"
+        aria-label={shareLabels.copyLink}
+        data-copy-link
+        data-url={url}
+    >
+        <IconLink class="h-6 w-6" aria-hidden="true" />
+    </button>
+</aside>
+
+<!-- Mobile: Floating action buttons -->
+<div class="min-[900px]:hidden transition-opacity duration-200" data-mobile-floating-buttons>
+    <!-- Share button (middle) - z-50 ensures clickable above menu -->
+    <button
+        type="button"
+        data-share-mobile-toggle
+        class="fixed bottom-[72px] right-6 z-50 flex h-11 w-11 items-center justify-center rounded-full backdrop-blur-md bg-surface/95 border border-border text-secondary shadow-md transition-all duration-300 hover:bg-accent-soft hover:text-accent hover:border-accent hover:shadow-[0_8px_24px_rgba(var(--color-accent-rgb),0.28)] active:scale-95 touch-manipulation"
+        aria-label={shareLabels.shareArticle}
+        aria-expanded="false"
+    >
+        <IconShare class="h-5 w-5" aria-hidden="true" />
+    </button>
+
+    <!-- Share menu (hidden by default) -->
+    <div
+        data-share-menu
+        class="fixed bottom-[72px] right-6 z-40 flex flex-col-reverse gap-2 pb-12 opacity-0 pointer-events-none transition-opacity duration-200"
+        aria-hidden="true"
+    >
+        <button
+            type="button"
+            class="flex h-11 w-11 items-center justify-center rounded-full bg-surface border border-border shadow-md transition-transform duration-200 scale-75 focus-accent touch-manipulation"
+            aria-label={shareLabels.copyLink}
+            data-copy-link
+            data-url={url}
+            data-share-menu-item
+        >
+            <IconLink class="h-5 w-5 text-secondary" aria-hidden="true" />
+        </button>
+    </div>
+</div>
+
+<!-- Toast notification for copy success -->
+<div
+    data-copy-toast
+    class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-lg bg-surface border border-border px-4 py-3 shadow-lg opacity-0 pointer-events-none transition-all duration-300 translate-y-2"
+    role="status"
+    aria-live="polite"
+>
+    <IconCheck class="h-5 w-5 text-accent" aria-hidden="true" />
+    <span class="text-sm text-primary">{shareLabels.copied}</span>
+</div>
+
+<script is:inline>
+(function() {
+    const mobileToggle = document.querySelector("[data-share-mobile-toggle]");
+    const shareMenu = document.querySelector("[data-share-menu]");
+    const shareMenuItems = document.querySelectorAll("[data-share-menu-item]");
+    const copyButtons = document.querySelectorAll("[data-copy-link]");
+    const toast = document.querySelector("[data-copy-toast]");
+
+    let toastTimeout;
+    let menuOpen = false;
+
+    // Mobile menu toggle
+    function setMenuOpen(open) {
+        if (!shareMenu || !mobileToggle) return;
+        menuOpen = open;
+        mobileToggle.setAttribute("aria-expanded", String(open));
+        shareMenu.setAttribute("aria-hidden", String(!open));
+
+        if (open) {
+            shareMenu.classList.remove("opacity-0", "pointer-events-none");
+            shareMenuItems.forEach((item, i) => {
+                setTimeout(() => {
+                    item.classList.remove("scale-75");
+                    item.classList.add("scale-100");
+                }, i * 50);
+            });
+        } else {
+            shareMenu.classList.add("opacity-0", "pointer-events-none");
+            shareMenuItems.forEach((item) => {
+                item.classList.remove("scale-100");
+                item.classList.add("scale-75");
+            });
+        }
+    }
+
+    // Copy link to clipboard
+    async function copyLink(url) {
+        try {
+            await navigator.clipboard.writeText(url);
+            showToast();
+        } catch (err) {
+            console.error("Failed to copy:", err);
+        }
+    }
+
+    // Show toast notification
+    function showToast() {
+        if (!toast) return;
+        clearTimeout(toastTimeout);
+        toast.classList.remove("opacity-0", "pointer-events-none", "translate-y-2");
+        toastTimeout = setTimeout(() => {
+            toast.classList.add("opacity-0", "pointer-events-none", "translate-y-2");
+        }, 2000);
+    }
+
+    // Event listeners
+    mobileToggle?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const isCurrentlyOpen = mobileToggle.getAttribute("aria-expanded") === "true";
+        setMenuOpen(!isCurrentlyOpen);
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener("click", (e) => {
+        if (menuOpen &&
+            !e.target.closest("[data-share-mobile-toggle]") &&
+            !e.target.closest("[data-share-menu]")) {
+            setMenuOpen(false);
+        }
+    });
+
+    // Close menu on escape
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && menuOpen) {
+            setMenuOpen(false);
+            mobileToggle?.focus();
+        }
+    });
+
+    // Copy link buttons
+    copyButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const url = btn.dataset.url;
+            if (url) copyLink(url);
+            if (menuOpen) setMenuOpen(false);
+        });
+    });
+})();
+</script>

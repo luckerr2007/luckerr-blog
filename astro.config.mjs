@@ -1,0 +1,100 @@
+// @ts-check
+
+import cloudflare from "@astrojs/cloudflare";
+import mdx from "@astrojs/mdx";
+import sitemap from "@astrojs/sitemap";
+import tailwindcss from "@tailwindcss/vite";
+import { defineConfig } from "astro/config";
+import pagefind from "astro-pagefind";
+import rehypeAutolinkHeadings from "rehype-autolink-headings";
+import rehypeFigure from "rehype-figure";
+import rehypeImgSize from "rehype-img-size";
+import rehypeKatex from "rehype-katex";
+import rehypeMermaid from "rehype-mermaid";
+import rehypePicture from "rehype-picture";
+import rehypeSlug from "rehype-slug";
+import { remarkAlert } from "remark-github-blockquote-alert";
+import remarkMath from "remark-math";
+import Icons from "unplugin-icons/vite";
+import { remarkModifiedTime } from "./remark-modified-time.mjs";
+
+// https://astro.build/config
+export default defineConfig({
+    site: "https://niracler.com",
+    trailingSlash: "never",
+    output: "static", // 静态模式：全部预渲染（动态页面需要单独配置 prerender: false）
+    integrations: [
+        mdx(),
+        sitemap({
+            i18n: {
+                defaultLocale: "zh",
+                locales: {
+                    zh: "zh-CN",
+                    en: "en-US",
+                },
+            },
+        }),
+        pagefind(),
+    ],
+    adapter: cloudflare({
+        imageService: "compile",
+    }),
+
+    markdown: {
+        remarkPlugins: [remarkMath, remarkAlert, remarkModifiedTime],
+        shikiConfig: {
+            // 双主题配置：通过 CSS 变量控制，无需 !important
+            themes: {
+                light: "github-light",
+                dark: "catppuccin-mocha",
+            },
+            // 禁用默认颜色，让 CSS 完全控制主题切换
+            defaultColor: false,
+        },
+        syntaxHighlight: {
+            excludeLangs: ["mermaid"],
+        },
+        rehypePlugins: [
+            rehypeSlug,
+            [
+                rehypeAutolinkHeadings,
+                {
+                    behavior: "prepend",
+                    properties: {
+                        class: "anchor-link",
+                        ariaHidden: true,
+                        tabIndex: -1,
+                    },
+                },
+            ],
+            [
+                rehypeMermaid,
+                {
+                    strategy: "pre-mermaid", // 客户端渲染，不需要 Playwright
+                },
+            ],
+            rehypePicture,
+            [rehypeImgSize, { dir: "./public" }],
+            rehypeFigure,
+            rehypeKatex,
+        ],
+    },
+
+    i18n: {
+        defaultLocale: "zh",
+        locales: ["zh", "en"],
+        routing: {
+            prefixDefaultLocale: false,
+        },
+    },
+
+    vite: {
+        plugins: [
+            tailwindcss(),
+            Icons({
+                compiler: "astro",
+                autoInstall: false,
+            }),
+        ],
+    },
+});

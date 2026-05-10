@@ -1,0 +1,459 @@
+---
+/**
+ * TwikooComments - Twikoo 评论系统组件
+ * 使用 CDN 引入 twikoo.nocss.js + twikoo.css，自定义样式覆盖
+ */
+
+const locale = Astro.currentLocale === "en" ? "en" : "zh";
+const heading = locale === "en" ? "Comments" : "评论";
+---
+
+<div class="mt-12 border-t border-border-subtle pt-6">
+    <h2 class="mb-6 text-xl font-semibold text-primary">{heading}</h2>
+    <div id="twikoo-container"></div>
+</div>
+
+<script is:inline>
+    (function() {
+        function initTwikoo() {
+            if (typeof twikoo === 'undefined') {
+                setTimeout(initTwikoo, 100);
+                return;
+            }
+            
+            twikoo.init({
+                envId: 'https://twikoo2007.netlify.app/',
+                el: '#twikoo-container',
+                path: window.location.pathname,
+                lang: document.documentElement.lang === 'en' ? 'en' : 'zh-CN',
+            });
+            
+            // 等待 Twikoo 渲染完成后调整样式
+            setTimeout(function() {
+                adjustTwikooLayout();
+            }, 1000);
+        }
+        
+        function adjustTwikooLayout() {
+            const container = document.getElementById('twikoo-container');
+            if (!container) return;
+            
+            // 隐藏 Powered by Twikoo
+            const footerElements = container.querySelectorAll('.tk-footer, .tk-powered, [class*="footer"], [class*="powered"]');
+            footerElements.forEach(function(el) {
+                el.style.display = 'none';
+            });
+            
+            // 查找包含 "Powered by" 或 "Twikoo" 文本的元素
+            const allElements = container.querySelectorAll('*');
+            allElements.forEach(function(el) {
+                if (el.textContent && el.textContent.includes('Powered by Twikoo')) {
+                    el.style.display = 'none';
+                }
+            });
+            
+            // 调整工具栏按钮顺序：刷新按钮移到最左
+            const toolbar = container.querySelector('.tk-toolbar');
+            if (toolbar) {
+                const buttons = toolbar.querySelectorAll('button, .tk-action');
+                if (buttons.length > 0) {
+                    // 找到刷新按钮（通常是第一个按钮或包含刷新图标的按钮）
+                    const refreshBtn = buttons[0];
+                    if (refreshBtn) {
+                        toolbar.insertBefore(refreshBtn, toolbar.firstChild);
+                        refreshBtn.style.order = '-999';
+                    }
+                }
+            }
+        }
+        
+        // Lazy load when near viewport
+        const container = document.getElementById('twikoo-container');
+        if (container) {
+            const observer = new IntersectionObserver(
+                (entries) => {
+                    if (entries[0].isIntersecting) {
+                        observer.disconnect();
+                        initTwikoo();
+                    }
+                },
+                { rootMargin: '200px' }
+            );
+            observer.observe(container);
+        }
+        
+        // Re-init on Astro view transitions
+        document.addEventListener('astro:after-swap', () => {
+            const el = document.getElementById('twikoo-container');
+            if (!el) return;
+            const obs = new IntersectionObserver(
+                (entries) => {
+                    if (entries[0].isIntersecting) {
+                        obs.disconnect();
+                        initTwikoo();
+                    }
+                },
+                { rootMargin: '200px' }
+            );
+            obs.observe(el);
+        });
+    })();
+</script>
+
+<style is:global>
+    /* ============================================
+       Twikoo 自定义样式 - 符合 Bokushi 设计规范
+       ============================================ */
+    
+    /* 主容器 */
+    #twikoo-container {
+        --twikoo-primary-color: var(--color-accent);
+        --twikoo-text-color: var(--color-text-primary);
+        --twikoo-bg-color: transparent;
+    }
+    
+    #twikoo-container .tk-main {
+        font-family: inherit;
+    }
+    
+    /* 输入框区域 - 评论框 */
+    #twikoo-container .tk-input,
+    #twikoo-container .tk-textarea {
+        background: var(--color-bg-surface) !important;
+        border: 1px solid var(--color-border-soft) !important;
+        border-radius: var(--radius-md) !important;
+        padding: var(--space-3) !important;
+        font-size: var(--font-size-sm) !important;
+        color: var(--color-text-primary) !important;
+        transition: border-color var(--transition-base), box-shadow var(--transition-base) !important;
+    }
+    
+    #twikoo-container .tk-input:focus,
+    #twikoo-container .tk-textarea:focus {
+        outline: none !important;
+        border-color: var(--color-accent) !important;
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 12%, transparent) !important;
+    }
+    
+    #twikoo-container .tk-input::placeholder,
+    #twikoo-container .tk-textarea::placeholder {
+        color: var(--color-text-muted) !important;
+        opacity: 0.6 !important;
+    }
+    
+    /* 文本域特定样式 */
+    #twikoo-container .tk-textarea {
+        line-height: var(--line-height-base) !important;
+        resize: vertical !important;
+        min-height: 6rem !important;
+    }
+    
+    /* 提交按钮 */
+    #twikoo-container .tk-submit {
+        background: var(--color-accent) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: var(--radius-md) !important;
+        padding: var(--space-2) var(--space-6) !important;
+        font-size: var(--font-size-sm) !important;
+        font-weight: 600 !important;
+        cursor: pointer !important;
+        transition: background-color var(--transition-base), box-shadow var(--transition-base), transform 0.1s ease !important;
+    }
+    
+    #twikoo-container .tk-submit:hover {
+        background: var(--color-accent-dark) !important;
+        box-shadow: 0 2px 8px color-mix(in srgb, var(--color-accent) 30%, transparent) !important;
+    }
+    
+    #twikoo-container .tk-submit:active {
+        transform: scale(0.97) !important;
+    }
+    
+    /* 评论卡片 */
+    #twikoo-container .tk-comment {
+        padding-block: var(--space-4) !important;
+        border-bottom: 1px solid var(--color-border-soft) !important;
+        animation: tk-fade-in 0.35s ease-out both !important;
+    }
+    
+    #twikoo-container .tk-comment:last-child {
+        border-bottom: none !important;
+    }
+    
+    @keyframes tk-fade-in {
+        from {
+            opacity: 0;
+            transform: translateY(6px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* 头像 */
+    #twikoo-container .tk-avatar {
+        width: 2.5rem !important;
+        height: 2.5rem !important;
+        border-radius: 50% !important;
+        border: 2px solid var(--color-border-soft) !important;
+        transition: border-color var(--transition-base) !important;
+    }
+    
+    #twikoo-container .tk-comment:hover .tk-avatar {
+        border-color: var(--color-accent-soft) !important;
+    }
+    
+    /* 用户名 */
+    #twikoo-container .tk-nick {
+        font-weight: 600 !important;
+        color: var(--color-text-primary) !important;
+        font-size: var(--font-size-sm) !important;
+    }
+    
+    /* 评论时间 */
+    #twikoo-container .tk-time {
+        font-size: var(--font-size-xs) !important;
+        color: var(--color-text-muted) !important;
+    }
+    
+    /* 评论内容 */
+    #twikoo-container .tk-content {
+        font-size: var(--font-size-sm) !important;
+        color: var(--color-text-secondary) !important;
+        line-height: var(--line-height-base) !important;
+        margin-top: var(--space-2) !important;
+    }
+    
+    #twikoo-container .tk-content p {
+        margin: 0 !important;
+    }
+    
+    #twikoo-container .tk-content p + p {
+        margin-top: var(--space-block-loose) !important;
+    }
+    
+    #twikoo-container .tk-content a {
+        color: var(--color-link) !important;
+        text-decoration: none !important;
+    }
+    
+    #twikoo-container .tk-content a:hover {
+        color: var(--color-link-hover) !important;
+        text-decoration: underline !important;
+    }
+    
+    #twikoo-container .tk-content code {
+        font-family: "Fira Code", "SFMono-Regular", Consolas, monospace !important;
+        font-size: 0.875em !important;
+        padding: 0.125em 0.375em !important;
+        background: var(--color-bg-muted) !important;
+        border-radius: var(--radius-sm) !important;
+    }
+    
+    /* 操作按钮 */
+    #twikoo-container .tk-action,
+    #twikoo-container .tk-reply,
+    #twikoo-container .tk-likes {
+        font-size: var(--font-size-xs) !important;
+        color: var(--color-text-muted) !important;
+        cursor: pointer !important;
+        transition: color var(--transition-base) !important;
+    }
+    
+    #twikoo-container .tk-action:hover,
+    #twikoo-container .tk-reply:hover,
+    #twikoo-container .tk-likes:hover {
+        color: var(--color-accent) !important;
+    }
+    
+    #twikoo-container .tk-likes.tk-liked {
+        color: var(--color-accent) !important;
+    }
+    
+    /* 回复区域 */
+    #twikoo-container .tk-replies {
+        margin-left: calc(2.5rem + var(--space-3)) !important;
+        padding-left: var(--space-6) !important;
+        border-left: 2px solid color-mix(in srgb, var(--color-accent) 20%, transparent) !important;
+    }
+    
+    #twikoo-container .tk-reply-comment {
+        padding-block: var(--space-3) !important;
+        border-top: 1px solid color-mix(in srgb, var(--color-border-soft) 50%, transparent) !important;
+    }
+    
+    /* 加载状态 */
+    #twikoo-container .tk-loading {
+        text-align: center !important;
+        padding: var(--space-12) var(--space-4) !important;
+        color: var(--color-text-muted) !important;
+    }
+    
+    /* 空状态 */
+    #twikoo-container .tk-empty {
+        text-align: center !important;
+        padding: var(--space-12) var(--space-4) !important;
+        color: var(--color-text-muted) !important;
+    }
+    
+    #twikoo-container .tk-empty-title {
+        font-size: var(--font-size-sm) !important;
+        font-weight: 600 !important;
+        color: var(--color-text-secondary) !important;
+        margin: 0 0 var(--space-1) !important;
+    }
+    
+    /* 表情选择器 */
+    #twikoo-container .tk-emoji-picker {
+        background: var(--color-bg-surface) !important;
+        border: 1px solid var(--color-border-soft) !important;
+        border-radius: var(--radius-md) !important;
+        box-shadow: var(--shadow-soft) !important;
+    }
+    
+    /* 预览区域 */
+    #twikoo-container .tk-preview {
+        background: var(--color-bg-muted) !important;
+        border: 1px solid var(--color-border-soft) !important;
+        border-radius: var(--radius-md) !important;
+        padding: var(--space-3) !important;
+    }
+    
+    /* 通知 */
+    #twikoo-container .tk-notification {
+        background: var(--color-bg-surface) !important;
+        border: 1px solid var(--color-border-soft) !important;
+        border-radius: var(--radius-md) !important;
+        box-shadow: var(--shadow-soft) !important;
+    }
+    
+    /* 错误提示 */
+    #twikoo-container .tk-error {
+        color: var(--color-danger) !important;
+        font-size: var(--font-size-sm) !important;
+    }
+    
+    /* 管理员标记 */
+    #twikoo-container .tk-admin {
+        background: color-mix(in srgb, var(--color-accent) 14%, transparent) !important;
+        color: var(--color-accent) !important;
+        border: 1px solid color-mix(in srgb, var(--color-accent) 24%, transparent) !important;
+        border-radius: var(--radius-full) !important;
+        padding: 1px var(--space-2) !important;
+        font-size: var(--font-size-2xs) !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.02em !important;
+    }
+    
+    /* 置顶标记 */
+    #twikoo-container .tk-pinned {
+        background: color-mix(in srgb, var(--color-warning) 16%, transparent) !important;
+        color: color-mix(in srgb, var(--color-warning) 88%, #3b2f05 12%) !important;
+        border: 1px solid color-mix(in srgb, var(--color-warning) 30%, transparent) !important;
+        border-radius: var(--radius-full) !important;
+        padding: 1px var(--space-2) !important;
+        font-size: var(--font-size-2xs) !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.02em !important;
+    }
+    
+    /* 分页 */
+    #twikoo-container .tk-pagination {
+        margin-top: var(--space-6) !important;
+    }
+    
+    #twikoo-container .tk-pagination button {
+        background: var(--color-bg-surface) !important;
+        border: 1px solid var(--color-border-soft) !important;
+        border-radius: var(--radius-md) !important;
+        padding: var(--space-2) var(--space-4) !important;
+        font-size: var(--font-size-sm) !important;
+        color: var(--color-text-secondary) !important;
+        cursor: pointer !important;
+        transition: all var(--transition-base) !important;
+    }
+    
+    #twikoo-container .tk-pagination button:hover {
+        border-color: var(--color-accent) !important;
+        color: var(--color-accent) !important;
+    }
+    
+    #twikoo-container .tk-pagination button.tk-active {
+        background: var(--color-accent) !important;
+        border-color: var(--color-accent) !important;
+        color: white !important;
+    }
+    
+    /* 统计信息 */
+    #twikoo-container .tk-meta {
+        font-size: var(--font-size-xs) !important;
+        color: var(--color-text-muted) !important;
+    }
+    
+    /* 工具栏 */
+    #twikoo-container .tk-toolbar {
+        border-bottom: 1px solid var(--color-border-soft) !important;
+        padding-bottom: var(--space-3) !important;
+        margin-bottom: var(--space-3) !important;
+    }
+    
+    /* 暗黑模式适配 */
+    html[data-theme="dark"] #twikoo-container .tk-input,
+    html[data-theme="dark"] #twikoo-container .tk-textarea {
+        background: var(--color-bg-surface) !important;
+        border-color: var(--color-border) !important;
+        color: var(--color-text-primary) !important;
+    }
+    
+    html[data-theme="dark"] #twikoo-container .tk-comment {
+        border-color: var(--color-border) !important;
+    }
+    
+    html[data-theme="dark"] #twikoo-container .tk-avatar {
+        border-color: var(--color-border) !important;
+    }
+    
+    html[data-theme="dark"] #twikoo-container .tk-emoji-picker,
+    html[data-theme="dark"] #twikoo-container .tk-notification {
+        background: var(--color-bg-surface) !important;
+        border-color: var(--color-border) !important;
+    }
+    
+    /* 隐藏 Powered by Twikoo - 尝试多种可能的选择器 */
+    #twikoo-container .tk-footer,
+    #twikoo-container [class*="footer"],
+    #twikoo-container .tk-powered,
+    #twikoo-container .tk-copyright,
+    #twikoo-container a[href*="twikoo"],
+    #twikoo-container div[class*="powered"] {
+        display: none !important;
+    }
+    
+    /* 工具栏按钮布局：刷新按钮在左 */
+    #twikoo-container .tk-toolbar {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        gap: var(--space-2) !important;
+    }
+    
+    /* 刷新按钮样式 */
+    #twikoo-container .tk-toolbar button,
+    #twikoo-container .tk-toolbar .tk-action {
+        order: 0 !important;
+    }
+    
+    /* 将刷新按钮（通常是第一个按钮）移到最左 */
+    #twikoo-container .tk-toolbar > *:first-child {
+        order: -999 !important;
+        margin-right: auto !important;
+    }
+    
+    /* 其他按钮靠右 */
+    #twikoo-container .tk-toolbar > *:not(:first-child) {
+        order: 1 !important;
+    }
+</style>

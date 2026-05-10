@@ -1,0 +1,346 @@
+---
+import type { CollectionEntry } from "astro:content";
+import type { MarkdownHeading } from "astro";
+import ArticleEncryption from "../components/ArticleEncryption.astro";
+import BaseHead from "../components/BaseHead.astro";
+import TwikooComments from "../components/TwikooComments.astro";
+import Footer from "../components/Footer.astro";
+import FormattedDate from "../components/FormattedDate.astro";
+import Header from "../components/Header.astro";
+import LanguageSwitcher from "../components/LanguageSwitcher.astro";
+import Lightbox from "../components/Lightbox.astro";
+import Prose from "../components/Prose.astro";
+import ReadingProgress from "../components/ReadingProgress.astro";
+import RelatedPosts from "../components/RelatedPosts.astro";
+import ShareSidebar from "../components/ShareSidebar.astro";
+import TableOfContents from "../components/TableOfContents.astro";
+import { DEFAULT_POST_SOCIAL_IMAGE } from "../consts";
+import { t } from "../i18n/ui";
+import { extractDescription } from "../utils/extractDescription";
+import type { Locale } from "../utils/i18n";
+import { localePath } from "../utils/i18n";
+import { estimateReadingTime } from "../utils/readingTime";
+
+type BlogEntry = CollectionEntry<"blog"> | CollectionEntry<"monthly"> | CollectionEntry<"til">;
+
+type EntryData =
+    | CollectionEntry<"blog">["data"]
+    | CollectionEntry<"monthly">["data"]
+    | CollectionEntry<"til">["data"];
+
+type Props = EntryData & {
+    locale?: Locale;
+    postId?: string;
+    body?: string;
+    headings?: MarkdownHeading[];
+    lastModified?: string;
+    lastModifiedCommitUrl?: string | null;
+    relatedPosts?: BlogEntry[];
+    hreflangAlternates?: { locale: string; url: string }[];
+    translationUrl?: string;
+    translationLocale?: string;
+};
+
+const {
+    locale = "zh",
+    title,
+    description: providedDescription,
+    pubDate,
+    updatedDate,
+    socialImage,
+    body,
+    tags,
+    headings = [],
+    lastModified,
+    lastModifiedCommitUrl,
+    relatedPosts = [],
+    hreflangAlternates = [],
+    translationUrl,
+    translationLocale,
+    encrypted,
+    password,
+    passwordHint,
+} = Astro.props;
+
+const htmlLang = locale === "en" ? "en" : "zh-CN";
+
+const description =
+    providedDescription ||
+    (body
+        ? extractDescription(body, 80, t(locale, "misc.noDescription"))
+        : t(locale, "misc.noDescription"));
+const readingTime = estimateReadingTime(body);
+
+const imageSrc = socialImage || DEFAULT_POST_SOCIAL_IMAGE;
+
+// 从 URL 路径提取 slug（用于点赞 API）
+const slug = Astro.url.pathname.replace(/^\/|\/$/g, "");
+
+// 只有当文章有足够的标题时才显示目录（至少 2 个 h2/h3）
+const showToc = headings.filter((heading) => heading.depth >= 2 && heading.depth <= 3).length >= 2;
+---
+
+<html lang={htmlLang}>
+	<head>
+		<BaseHead title={title} description={description} image={imageSrc} type="article" hreflangAlternates={hreflangAlternates} />
+		<script is:inline type="application/ld+json" set:html={JSON.stringify({
+			"@context": "https://schema.org",
+			"@type": "BlogPosting",
+			"headline": title,
+			"description": description,
+			"image": new URL(imageSrc, Astro.site).toString(),
+			"datePublished": pubDate.toISOString(),
+			...(updatedDate ? { "dateModified": updatedDate.toISOString() } : lastModified ? { "dateModified": new Date(lastModified).toISOString() } : {}),
+			"author": {
+				"@type": "Person",
+				"name": "云梦雨",
+				"url": "https://www.niracler.com"
+			},
+			"publisher": {
+				"@type": "Person",
+				"name": "云梦雨"
+			},
+			"mainEntityOfPage": {
+				"@type": "WebPage",
+				"@id": new URL(Astro.url.pathname, Astro.site).toString()
+			},
+			...(tags && tags.length > 0 ? { "keywords": tags.join(", ") } : {})
+		})} />
+	</head>
+
+	<body>
+		<ReadingProgress />
+		<Header />
+		<main id="main-content" class="page-shell max-w-none relative">
+			{/* 文章主体：始终居中 */}
+			<article class="mx-auto max-w-[50rem] sm:px-6">
+				{/* 标题区域 */}
+				<div data-article-header class="space-y-4 border-b border-border-subtle pb-6 text-center">
+					<h1 class="text-3xl font-bold text-primary sm:text-4xl">{title}</h1>
+					<div class="space-y-2 text-sm text-muted">
+						<p>
+							<FormattedDate date={pubDate} />
+							<span class="mx-1">·</span>
+							<span style="font-size: var(--font-size-xs); color: var(--color-text-muted);">{t(locale, "post.readingTime", { minutes: readingTime })}</span>
+						</p>
+						{
+							(lastModified || updatedDate) && (
+								<p>
+									{t(locale, "post.lastUpdated")} {
+										lastModifiedCommitUrl ? (
+											<a
+												href={lastModifiedCommitUrl}
+												target="_blank"
+												rel="noopener noreferrer"
+												class="underline decoration-dotted underline-offset-4 hover:text-accent transition-colors"
+											>
+												<FormattedDate date={lastModified ? new Date(lastModified) : updatedDate!} />
+											</a>
+										) : (
+											<FormattedDate date={lastModified ? new Date(lastModified) : updatedDate!} />
+										)
+									}
+								</p>
+							)
+						}
+					</div>
+					{tags && tags.length > 0 && (
+						<div class="flex flex-wrap justify-center gap-2">
+							{tags.map((tag: string) => (
+								<a
+									href={localePath(`/tags/${tag}`, locale)}
+									class="pill"
+									data-tone="accent"
+								>
+									{tag}
+								</a>
+							))}
+						</div>
+					)}
+					{translationUrl && (
+						<div class="pt-2">
+							<LanguageSwitcher translationUrl={translationUrl} translationLocale={translationLocale} />
+						</div>
+					)}
+				</div>
+
+				{/* 移动端 TOC */}
+				{showToc && (
+					<>
+						{/* 移动端：浮动按钮 (缩小到 2/3 尺寸) */}
+						<button
+							data-toc-mobile-toggle
+							class="min-[960px]:hidden fixed bottom-6 right-6 z-50 flex h-11 w-11 items-center justify-center rounded-full backdrop-blur-md bg-[rgb(var(--color-accent-rgb))] border border-[rgba(255,255,255,0.3)] text-white shadow-[0_6px_24px_rgba(var(--color-accent-rgb),0.35)] transition-all duration-300 hover:shadow-[0_8px_32px_rgba(var(--color-accent-rgb),0.45)] active:scale-95 touch-manipulation"
+							aria-label={t(locale, "post.openToc")}
+						>
+							<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+								<path d="M3 4h18M3 12h18M3 20h18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+							</svg>
+						</button>
+
+						{/* 移动端：抽屉式目录 */}
+						<div
+							data-toc-mobile-drawer
+							class="min-[960px]:hidden fixed inset-0 z-50 pointer-events-none"
+							aria-hidden="true"
+						>
+							{/* 遮罩层 */}
+							<div
+								data-toc-mobile-overlay
+								class="absolute inset-0 bg-black/50 opacity-0 transition-opacity duration-300 pointer-events-none"
+							></div>
+
+							{/* 抽屉内容 */}
+							<div
+								data-toc-mobile-content
+								class="absolute right-0 top-0 h-full w-80 max-w-[85vw] bg-surface shadow-2xl translate-x-full transition-transform duration-300 pointer-events-auto"
+							>
+								<div class="flex h-full flex-col">
+									{/* 头部 */}
+									<div class="flex items-center justify-between border-b border-border-subtle px-6 py-4">
+										<h2 class="text-lg font-semibold text-primary">{t(locale, "post.toc")}</h2>
+										<button
+											data-toc-mobile-close
+											class="flex h-8 w-8 items-center justify-center rounded-full hover:bg-muted transition-colors"
+											aria-label={t(locale, "post.closeToc")}
+										>
+											<svg class="h-5 w-5 text-muted" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+												<path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+											</svg>
+										</button>
+									</div>
+
+									{/* 目录内容 */}
+									<div class="flex-1 overflow-y-auto px-6 pt-4 pb-8">
+										<div class="toc-mobile">
+											<TableOfContents headings={headings} />
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</>
+				)}
+
+				{/* 正文 */}
+				<div class="pt-10 space-y-10 text-secondary">
+					{encrypted && password ? (
+						<ArticleEncryption password={password} hint={passwordHint}>
+							<Prose class="max-w-none text-secondary">
+								<slot />
+							</Prose>
+
+							<RelatedPosts posts={relatedPosts} />
+
+							<TwikooComments />
+							<Lightbox id="blog-lightbox" selector=".prose img:not([data-lightbox-skip])" />
+						</ArticleEncryption>
+					) : (
+						<>
+							<Prose class="max-w-none text-secondary">
+								<slot />
+							</Prose>
+
+							<RelatedPosts posts={relatedPosts} />
+
+							<TwikooComments />
+							<Lightbox id="blog-lightbox" selector=".prose img:not([data-lightbox-skip])" />
+						</>
+					)}
+				</div>
+			</article>
+
+			{/* 桌面端 TOC：固定定位浮动在右侧，top 由 JS 动态设置 */}
+			{showToc && (
+				<aside
+					data-toc-sidebar
+					class="hidden min-[960px]:block fixed w-[200px] min-[1100px]:w-[240px] min-[1280px]:w-[260px] opacity-0 transition-opacity duration-300"
+					style="left: calc(50% + 25rem + 1.5rem); top: 6rem; max-width: calc(50vw - 25rem - 3rem);"
+				>
+					{/* 阅读进度指示器 */}
+					<div class="mb-3 flex items-center gap-2">
+						<div class="h-0.5 flex-1 rounded-full overflow-hidden" style="background: var(--color-border-soft);">
+							<div
+								data-toc-progress
+								class="h-full rounded-full transition-[width] duration-150"
+								style="width: 0%; background: var(--color-accent); opacity: 0.6;"
+							></div>
+						</div>
+						<span
+							data-toc-progress-label
+							class="text-[10px] tabular-nums"
+							style="color: var(--color-text-muted);"
+						>0%</span>
+					</div>
+					<nav class="toc max-h-[calc(100vh-8rem)] overflow-y-auto">
+						<TableOfContents headings={headings} />
+					</nav>
+				</aside>
+			)}
+
+			{/* 分享侧边栏：桌面端左侧固定，移动端浮动按钮 */}
+			<ShareSidebar title={title} description={description} tags={tags} slug={slug} />
+
+			{/* 回到顶部浮动按钮：滚动 500px 后淡入显示 */}
+			{/* 移动端：左下角（避开右侧 TOC/分享/点赞按钮），桌面端：右下角 */}
+			<button
+				data-back-to-top
+				class="fixed z-40 flex items-center justify-center rounded-[var(--radius-md)] border opacity-0 pointer-events-none transition-opacity duration-300 bottom-6 left-6 h-11 w-11 min-[900px]:bottom-6 min-[900px]:right-6 min-[900px]:left-auto min-[900px]:h-10 min-[900px]:w-10 text-muted hover:text-secondary touch-manipulation"
+				style="background: var(--color-bg-surface); border-color: var(--color-border-soft); box-shadow: var(--shadow-soft);"
+				aria-label={t(locale, "post.backToTop")}
+			>
+				<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+					<path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+				</svg>
+			</button>
+		</main>
+		<Footer />
+	</body>
+	<script>
+		// 使用外部脚本优化加载性能
+		import { initBlogInteractive } from '../scripts/blog-interactive';
+		import '../scripts/code-blocks';
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initBlogInteractive, { once: true });
+		} else {
+			initBlogInteractive();
+		}
+	</script>
+	<script is:inline>
+	(function() {
+		var btn = document.querySelector("[data-back-to-top]");
+		if (!btn) return;
+
+		var THRESHOLD = 500;
+		var visible = false;
+		var ticking = false;
+
+		function update() {
+			var shouldShow = window.scrollY > THRESHOLD;
+			if (shouldShow !== visible) {
+				visible = shouldShow;
+				if (visible) {
+					btn.classList.remove("opacity-0", "pointer-events-none");
+					btn.classList.add("opacity-100");
+				} else {
+					btn.classList.remove("opacity-100");
+					btn.classList.add("opacity-0", "pointer-events-none");
+				}
+			}
+			ticking = false;
+		}
+
+		window.addEventListener("scroll", function() {
+			if (!ticking) {
+				ticking = true;
+				requestAnimationFrame(update);
+			}
+		}, { passive: true });
+
+		btn.addEventListener("click", function() {
+			window.scrollTo({ top: 0, behavior: "smooth" });
+		});
+	})();
+	</script>
+</html>

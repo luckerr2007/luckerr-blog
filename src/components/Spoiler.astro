@@ -1,0 +1,42 @@
+---
+// Spoiler component - reveals hidden text on click
+const locale = Astro.currentLocale === "en" ? "en" : "zh";
+const spoilerLabel = locale === "en" ? "Click to reveal hidden content" : "点击显示隐藏内容";
+---
+
+<span
+    class="spoiler inline cursor-pointer select-none rounded px-1.5 py-0.5 transition-colors"
+    style="background: var(--color-text-primary); color: var(--color-text-primary);"
+    role="button"
+    tabindex="0"
+    aria-expanded="false"
+    aria-label={spoilerLabel}
+>
+    <span aria-hidden="true"><slot /></span>
+</span>
+
+<script is:inline>
+    document.querySelectorAll(".spoiler").forEach(function(spoiler) {
+        if (spoiler.dataset.spoilerBound) return;
+        spoiler.dataset.spoilerBound = "1";
+
+        function toggle() {
+            spoiler.classList.toggle("revealed");
+            var isRevealed = spoiler.classList.contains("revealed");
+            spoiler.style.color = isRevealed
+                ? "var(--color-bg-surface)"
+                : "var(--color-text-primary)";
+            spoiler.setAttribute("aria-expanded", String(isRevealed));
+            var content = spoiler.querySelector("[aria-hidden]");
+            if (content) content.setAttribute("aria-hidden", String(!isRevealed));
+        }
+
+        spoiler.addEventListener("click", toggle);
+        spoiler.addEventListener("keydown", function(e) {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                toggle();
+            }
+        });
+    });
+</script>

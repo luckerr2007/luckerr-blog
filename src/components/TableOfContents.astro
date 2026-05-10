@@ -1,0 +1,90 @@
+---
+export interface Heading {
+    depth: number;
+    slug: string;
+    text: string;
+}
+
+export interface Props {
+    headings: Heading[];
+}
+
+const { headings } = Astro.props;
+
+// 只显示 h2 和 h3，过滤掉 h1 和自动生成的脚注标题
+const filteredHeadings = headings.filter(
+    (h) => h.depth >= 2 && h.depth <= 3 && h.slug !== "footnote-label",
+);
+
+// 构建嵌套结构
+interface NestedHeading extends Heading {
+    children: NestedHeading[];
+}
+
+function buildNestedHeadings(headings: Heading[]): NestedHeading[] {
+    const nested: NestedHeading[] = [];
+    const stack: NestedHeading[] = [];
+
+    headings.forEach((heading) => {
+        const node: NestedHeading = { ...heading, children: [] };
+
+        // 找到合适的父节点
+        while (stack.length > 0 && stack[stack.length - 1].depth >= node.depth) {
+            stack.pop();
+        }
+
+        if (stack.length === 0) {
+            nested.push(node);
+        } else {
+            stack[stack.length - 1].children.push(node);
+        }
+
+        stack.push(node);
+    });
+
+    return nested;
+}
+
+const nestedHeadings = buildNestedHeadings(filteredHeadings);
+
+const locale = Astro.currentLocale === "en" ? "en" : "zh";
+const tocHeading = locale === "en" ? "Contents" : "目录";
+---
+
+{nestedHeadings.length > 0 && (
+	<nav class="toc" data-no-preview aria-label="Table of Contents">
+		<h2 class="toc-title">{tocHeading}</h2>
+		<ol class="toc-list">
+			{nestedHeadings.map((heading, index) => (
+				<li>
+					<a
+						href={`#${heading.slug}`}
+						data-toc-link
+						data-heading-id={heading.slug}
+						class="toc-link"
+					>
+						<span class="toc-number">{index + 1}</span>
+						<span class="toc-text">{heading.text}</span>
+					</a>
+					{heading.children.length > 0 && (
+						<ol class="toc-sublist">
+							{heading.children.map((child, childIndex) => (
+								<li>
+									<a
+										href={`#${child.slug}`}
+										data-toc-link
+										data-heading-id={child.slug}
+										class="toc-link toc-link-child"
+									>
+										<span class="toc-number">{index + 1}.{childIndex + 1}</span>
+										<span class="toc-text">{child.text}</span>
+									</a>
+								</li>
+							))}
+						</ol>
+					)}
+				</li>
+			))}
+		</ol>
+	</nav>
+)}
