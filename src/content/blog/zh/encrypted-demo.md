@@ -5,7 +5,7 @@ pubDate: 2026-05-09
 tags: ["demo", "encrypted"]
 encrypted: true
 password: "admin"
-passwordHint: "管理员密码"
+passwordHint: "密码：admin"
 ---
 
 这是一篇加密文章的内容。
