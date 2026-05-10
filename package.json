@@ -75,6 +75,7 @@
             "h3": ">=1.15.5"
         },
         "onlyBuiltDependencies": [
+            "@parcel/watcher",
             "esbuild",
             "sharp",
             "workerd"
