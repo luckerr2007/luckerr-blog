@@ -92,7 +92,7 @@ Used for hover states, backgrounds, and subtle fills:
 
 ## 3. Typography Rules
 
-**Primary font**: `jf-openhuninn-2.0`, then system stack (`-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif`)
+**Primary font**: `HarmonyOS Sans Medium`, then system stack (`-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif`)
 **Code font**: `Fira Code, SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace`
 **Letter spacing**: `0.01em` on body (aids Chinese readability)
 
