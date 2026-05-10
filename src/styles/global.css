@@ -76,7 +76,12 @@
             "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
         font-size: var(--font-size-base);
         line-height: var(--line-height-base);
-        letter-spacing: 0.01em;
+        letter-spacing: normal;
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+        font-language-override: normal;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
     }
 
     .prose strong,
@@ -199,13 +204,20 @@
         gap: var(--space-block-base);
         margin-inline: auto;
         color: var(--color-text-primary);
-        line-height: var(--line-height-base);
+        line-height: 1.8;
         counter-reset: h2;
     }
 
     .prose > * {
         min-width: 0;
         min-inline-size: 0;
+    }
+
+    .prose p {
+        /* Fix CJK punctuation baseline: trim excess leading, align to cap-height top and baseline bottom */
+        /* Supported in Chrome 115+, Edge 115+, Safari 16.4+ */
+        text-box-trim: trim-both;
+        text-box-edge: cap alphabet;
     }
 
     .prose > *:first-child {
