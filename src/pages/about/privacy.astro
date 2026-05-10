@@ -1,0 +1,134 @@
+---
+import BaseHead from "../../components/BaseHead.astro";
+import Header from "../../components/Header.astro";
+import Footer from "../../components/Footer.astro";
+import { getLocale, t } from "../../i18n/ui";
+import { localePath } from "../../utils/i18n";
+
+const locale = getLocale(Astro.currentLocale);
+const homeHref = localePath("/", locale);
+---
+
+<!DOCTYPE html>
+<html lang={locale}>
+    <head>
+        <BaseHead title={t(locale, "nav.privacy")} description={t(locale, "nav.privacy")} />
+    </head>
+    <body class="bg-page min-h-screen text-secondary antialiased">
+        <Header />
+        <main id="main-content" class="page-shell">
+            <div class="mx-auto max-w-[var(--measure)]">
+                <nav aria-label={t(locale, "nav.breadcrumb")} class="mb-8 text-sm text-muted">
+                    <ol class="flex items-center gap-2">
+                        <li><a href={localePath("/about", locale)} class="text-link underline-link hover:text-link-hover">{t(locale, "nav.about")}</a></li>
+                        <li aria-hidden="true" class="text-border">/</li>
+                        <li aria-current="page" class="text-secondary">{t(locale, "nav.privacy")}</li>
+                    </ol>
+                </nav>
+
+                <article class="prose">
+                    <h1 class="text-3xl font-bold text-primary">{t(locale, "nav.privacy")}</h1>
+
+                    <p><strong>{t(locale, "privacy.effectiveDate")}：</strong>2026年5月10日<br />
+                    <strong>{t(locale, "privacy.version")}：</strong>v1.0</p>
+
+                    <hr class="my-8 border-border" />
+
+                    <h2 class="text-2xl font-extrabold text-primary">{t(locale, "privacy.introduction")}</h2>
+
+                    <p>{t(locale, "privacy.intro.p1")}</p>
+
+                    <p>{t(locale, "privacy.intro.p2")}</p>
+
+                    <h2 class="text-2xl font-extrabold text-primary">{t(locale, "privacy.infoCollection")}</h2>
+
+                    <p><strong>{t(locale, "privacy.infoCollection.statement")}</strong></p>
+
+                    <p>{t(locale, "privacy.infoCollection.detail")}</p>
+
+                    <ul>
+                        <li>{t(locale, "privacy.infoList.comments")}</li>
+                        <li>{t(locale, "privacy.infoList.noLogin")}</li>
+                        <li>{t(locale, "privacy.infoList.noContactForm")}</li>
+                        <li>{t(locale, "privacy.infoList.noTracking")}</li>
+                        <li>{t(locale, "privacy.infoList.noCookies")}</li>
+                        <li>{t(locale, "privacy.infoList.noIP")}</li>
+                    </ul>
+
+                    <p>{t(locale, "privacy.infoCollection.hosting")}</p>
+
+                    <h2 class="text-2xl font-extrabold text-primary">{t(locale, "privacy.embeddedContent")}</h2>
+
+                    <p>{t(locale, "privacy.embeddedContent.p1")}</p>
+
+                    <h2 class="text-2xl font-extrabold text-primary">{t(locale, "privacy.copyright")}</h2>
+
+                    <p>{t(locale, "privacy.copyright.p1")}</p>
+
+                    <h2 class="text-2xl font-extrabold text-primary">{t(locale, "privacy.minors")}</h2>
+
+                    <p>{t(locale, "privacy.minors.p1")}</p>
+
+                    <h2 class="text-2xl font-extrabold text-primary">{t(locale, "privacy.updates")}</h2>
+
+                    <p>{t(locale, "privacy.updates.p1")}</p>
+
+                    <h2 class="text-2xl font-extrabold text-primary">{t(locale, "privacy.contact")}</h2>
+
+                    <p>{t(locale, "privacy.contact.p1")}</p>
+
+                    <ul>
+                        <li><strong>{t(locale, "privacy.email")}：</strong><a href="mailto:3225567838@qq.com" class="text-link underline-link hover:text-link-hover">3225567838@qq.com</a></li>
+                    </ul>
+
+                    <p>{t(locale, "privacy.contact.reply")}</p>
+
+                    <hr class="my-8 border-border" />
+
+                    <blockquote class="border-l-4 border-accent bg-accent-tint-8 rounded-r-md px-4 py-3 text-secondary">
+                        <p><strong>{t(locale, "privacy.corePrinciple")}</strong></p>
+                    </blockquote>
+                </article>
+            </div>
+        </main>
+        <Footer />
+    </body>
+</html>
+
+<style is:global>
+    .prose {
+        max-width: var(--measure);
+        line-height: var(--line-height-base);
+        letter-spacing: 0.01em;
+    }
+    .prose h2 {
+        margin-top: var(--space-8);
+        margin-bottom: var(--space-4);
+    }
+    .prose p {
+        margin-bottom: var(--space-block-base);
+    }
+    .prose ul {
+        margin-bottom: var(--space-block-base);
+        padding-left: var(--space-6);
+        list-style: disc;
+    }
+    .prose li {
+        margin-bottom: var(--space-block-tight);
+        line-height: var(--line-height-compact);
+    }
+    .prose strong {
+        color: var(--color-accent);
+        font-weight: 600;
+    }
+    .prose hr {
+        border-top: 1px solid var(--color-border);
+    }
+    .prose a {
+        color: var(--color-link);
+        text-decoration: none;
+    }
+    .prose a:hover {
+        color: var(--color-link-hover);
+    }
+</style>

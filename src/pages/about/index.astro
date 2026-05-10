@@ -1,0 +1,90 @@
+---
+import BaseHead from "../../components/BaseHead.astro";
+import Header from "../../components/Header.astro";
+import Footer from "../../components/Footer.astro";
+import { getLocale, t } from "../../i18n/ui";
+import { localePath } from "../../utils/i18n";
+
+const locale = getLocale(Astro.currentLocale);
+const homeHref = localePath("/", locale);
+---
+
+<!DOCTYPE html>
+<html lang={locale}>
+    <head>
+        <BaseHead title={t(locale, "nav.about")} description={t(locale, "nav.about")} />
+    </head>
+    <body class="bg-page min-h-screen text-secondary antialiased">
+        <Header />
+        <main id="main-content" class="page-shell">
+            <div class="mx-auto max-w-[var(--measure)]">
+                <article class="prose">
+                    <h1 class="text-3xl font-bold text-primary">{t(locale, "nav.about")}</h1>
+
+                    <p>{t(locale, "about.welcome")}</p>
+
+                    <h2 class="text-2xl font-extrabold text-primary">{t(locale, "about.whoami")}</h2>
+
+                    <p>{t(locale, "about.whoami.p1")}</p>
+
+                    <h2 class="text-2xl font-extrabold text-primary">{t(locale, "about.blog")}</h2>
+
+                    <p>{t(locale, "about.blog.p1")}</p>
+
+                    <h2 class="text-2xl font-extrabold text-primary">{t(locale, "nav.privacy")}</h2>
+
+                    <p>{t(locale, "about.privacy.p1")}</p>
+
+                    <p>
+                        <a href="/about/privacy" class="text-link underline-link hover:text-link-hover">{t(locale, "about.privacy.link")}</a>
+                    </p>
+
+                    <h2 class="text-2xl font-extrabold text-primary">{t(locale, "about.contact")}</h2>
+
+                    <p>{t(locale, "about.contact.p1")}</p>
+
+                    <ul>
+                        <li><strong>{t(locale, "about.email")}：</strong><a href="mailto:3225567838@qq.com" class="text-link underline-link hover:text-link-hover">3225567838@qq.com</a></li>
+                        <li><strong>GitHub：</strong><a href="https://github.com/luckerr2007" class="text-link underline-link hover:text-link-hover" target="_blank" rel="noopener">luckerr2007</a></li>
+                    </ul>
+                </article>
+            </div>
+        </main>
+        <Footer />
+    </body>
+</html>
+
+<style is:global>
+    .prose {
+        max-width: var(--measure);
+        line-height: var(--line-height-base);
+        letter-spacing: 0.01em;
+    }
+    .prose h2 {
+        margin-top: var(--space-8);
+        margin-bottom: var(--space-4);
+    }
+    .prose p {
+        margin-bottom: var(--space-block-base);
+    }
+    .prose ul {
+        margin-bottom: var(--space-block-base);
+        padding-left: var(--space-6);
+        list-style: disc;
+    }
+    .prose li {
+        margin-bottom: var(--space-block-tight);
+        line-height: var(--line-height-compact);
+    }
+    .prose strong {
+        color: var(--color-accent);
+        font-weight: 600;
+    }
+    .prose a {
+        color: var(--color-link);
+        text-decoration: none;
+    }
+    .prose a:hover {
+        color: var(--color-link-hover);
+    }
+</style>

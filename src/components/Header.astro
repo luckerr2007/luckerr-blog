@@ -20,7 +20,13 @@ const navItems =
                       { href: "/categories", label: t(locale, "nav.categories") },
                   ],
               },
-              { href: "/about", label: t(locale, "nav.about") },
+              {
+                  label: t(locale, "nav.about"),
+                  href: "/about",
+                  children: [
+                      { href: "/about/privacy", label: t(locale, "nav.privacy") },
+                  ],
+              },
               ...(isDev ? [{ href: "/editor", label: t(locale, "nav.editor") }] : []),
           ]
         : [
@@ -29,6 +35,13 @@ const navItems =
                   href: localePath("/blog", locale),
                   children: [
                       { href: localePath("/categories", locale), label: t(locale, "nav.categories") },
+                  ],
+              },
+              {
+                  label: t(locale, "nav.about"),
+                  href: localePath("/about", locale),
+                  children: [
+                      { href: localePath("/about/privacy", locale), label: t(locale, "nav.privacy") },
                   ],
               },
               ...(isDev ? [{ href: "/editor", label: t(locale, "nav.editor") }] : []),

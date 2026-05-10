@@ -35,3 +35,7 @@ screenshots/
 
 # Local Netlify folder
 .netlify
+
+# Deploy scripts (keep local, don't upload)
+deploy.py
+deploy*.py
