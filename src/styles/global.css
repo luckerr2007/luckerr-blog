@@ -204,20 +204,13 @@
         gap: var(--space-block-base);
         margin-inline: auto;
         color: var(--color-text-primary);
-        line-height: 1.8;
+        line-height: 1.65;
         counter-reset: h2;
     }
 
     .prose > * {
         min-width: 0;
         min-inline-size: 0;
-    }
-
-    .prose p {
-        /* Fix CJK punctuation baseline: trim excess leading, align to cap-height top and baseline bottom */
-        /* Supported in Chrome 115+, Edge 115+, Safari 16.4+ */
-        text-box-trim: trim-both;
-        text-box-edge: cap alphabet;
     }
 
     .prose > *:first-child {
