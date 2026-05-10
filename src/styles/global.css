@@ -71,7 +71,7 @@
         background: var(--color-bg-page);
         color: var(--color-text-primary);
         font-family:
-            "jf-openhuninn-2.0", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+            "HarmonyOS Sans Medium", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
             "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
             "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
         font-size: var(--font-size-base);
@@ -204,7 +204,7 @@
         gap: var(--space-block-base);
         margin-inline: auto;
         color: var(--color-text-primary);
-        line-height: 1.65;
+        line-height: var(--line-height-base);
         counter-reset: h2;
     }
 

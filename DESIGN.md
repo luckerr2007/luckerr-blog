@@ -8,7 +8,7 @@
 **Style**: Warm, paper-like reading experience inspired by Japanese stationery
 **Framework**: Apple Human Interface Guidelines (Clarity, Consistency, Deference)
 **Personality**: Content-first, minimal interaction, generous whitespace
-**Font**: jf-openhuninn-2.0 (Chinese-optimized open-source font) with system fallbacks
+**Font**: HarmonyOS Sans Medium (HarmonyOS font) with system fallbacks
 **Base size**: 17px (1.0625rem) — Apple HIG compliant for readability
 
 The blog uses a warm earth-tone palette with terracotta accents. Dark mode deepens the warmth rather than going cold/blue. Strong text and `<strong>` tags render in the accent color, not bold black.
